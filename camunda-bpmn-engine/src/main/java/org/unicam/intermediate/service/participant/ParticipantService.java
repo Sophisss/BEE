@@ -9,6 +9,7 @@ import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.*;
 import org.camunda.bpm.model.bpmn.instance.Process;
+import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -273,6 +274,20 @@ public class ParticipantService {
                                     participantName != null ? participantName : participantId,
                                     processKey
                             );
+
+                    if (process.getExtensionElements() != null) {
+                        process.getExtensionElements().getElementsQuery()
+                                .filterByType(CamundaProperties.class)
+                                .list()
+                                .forEach(element -> {
+                            element.getCamundaProperties().forEach(prop -> {
+                                participant.getAttributes().put(prop.getCamundaName(), prop.getCamundaValue());
+                            });
+                        });
+
+                        log.info("[ParticipantService] Extracted attributes for participant {}: {}",
+                                participantId, participant.getAttributes());
+                    }
 
                     collabData.addParticipant(participant);
 
