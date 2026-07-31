@@ -199,6 +199,7 @@ export const styles = StyleSheet.create({
         color: '#0F172A',
         fontWeight: 'bold',
         fontSize: 12,
+        alignSelf: 'center',
     },
     emptyText: {
         fontSize: 12,

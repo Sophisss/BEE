@@ -1,12 +1,13 @@
-import React, {useState, useEffect, useMemo} from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, Alert} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, Participant, PendingAction} from '../types/navigation';
-import {PlaceAttributesCard} from '../components/PlaceAttributesCard';
-import {LeafletMapView} from '../components/LeafletMapView';
-import {LogicalPlacesPanel} from '../components/LogicalPlacesPanel';
-import {PendingActionsCard} from '../components/PendingActionsCard';
-import {EnvironmentData, Place} from '../types/environment';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, Alert } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, Participant, PendingAction } from '../types/navigation';
+import { PlaceAttributesCard } from '../components/PlaceAttributesCard';
+import { LeafletMapView } from '../components/LeafletMapView';
+import { LogicalPlacesPanel } from '../components/LogicalPlacesPanel';
+import { PendingActionsCard } from '../components/PendingActionsCard';
+import { POIList } from '../components/POIList';
+import { EnvironmentData, Place } from '../types/environment';
 import {
     fetchPhysicalPlacesApi,
     fetchLogicalPlacesApi,
@@ -16,7 +17,12 @@ import {
     updateParticipantPositionApi,
     updatePlaceAttributeApi,
 } from '../services/api';
-import {styles} from './MapScreen.styles';
+import {
+    generateGenericTour,
+    buildTourStepsForMap,
+    TourResult,
+} from '../services/navigationService';
+import { styles } from './MapScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 
@@ -32,9 +38,24 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     const [isUpdatingPosition, setIsUpdatingPosition] = useState<boolean>(false);
     const [draftAttributes, setDraftAttributes] = useState<Record<string, any>>({});
     const [isSavingAttributes, setIsSavingAttributes] = useState<boolean>(false);
+    const [activeTour, setActiveTour] = useState<TourResult | null>(null);
 
     const activeParticipant = participants.find((p) => p.id === activeParticipantId);
     const currentPlace = environment.places.find((p) => p.id === activeParticipant?.currentPlaceId);
+
+    // 1. Calculate Tour for the active participant
+    useEffect(() => {
+        if (environment.places.length > 0 && activeParticipant) {
+            const tour = generateGenericTour(environment, activeParticipant);
+            setActiveTour(tour);
+        }
+    }, [environment, activeParticipant, activeParticipantId]);
+
+    // 2. Prepare tour steps for LeafletMapView
+    const activeTourSteps = useMemo(() => {
+        if (!activeTour) return [];
+        return buildTourStepsForMap(activeTour, environment.places);
+    }, [activeTour, environment.places]);
 
     useEffect(() => {
         setDraftAttributes(currentPlace ? (currentPlace.attributes || {}) : {});
@@ -47,7 +68,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     fetchPhysicalPlacesApi(),
                     fetchEdgesApi(),
                     fetchLogicalPlacesApi(),
-                    refreshParticipantsApi()
+                    refreshParticipantsApi(),
                 ]);
 
                 setEnvironment((prev) => ({
@@ -67,7 +88,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                             .filter((place: any) => {
                                 const attrs = place.attributes || {};
                                 return conditions.every((cond: any) => {
-                                    const {attribute, operator, value} = cond;
+                                    const { attribute, operator, value } = cond;
                                     const actualVal = attrs[attribute];
                                     switch (operator) {
                                         case '==':
@@ -92,7 +113,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
             }
         };
 
-        fetchEnvironmentData();
+        fetchEnvironmentData().then(_ => console.log('Environment data fetched')).catch(e => console.warn('Error fetching environment data:', e));
         const interval = setInterval(fetchEnvironmentData, 3000);
         return () => clearInterval(interval);
     }, []);
@@ -112,13 +133,13 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                 setLoadingActions(false);
             }
         };
-        fetchPendingActions();
+        fetchPendingActions().then(_ => console.log('Pending actions refreshed')).catch(e => console.warn('Error refreshing pending actions:', e));
     }, [activeParticipantId, activeParticipant?.currentPlaceId]);
 
     const moveActiveParticipant = async (targetPlaceId: string) => {
         if (!activeParticipantId) return;
         setParticipants((prev) =>
-            prev.map((p) => (p.id === activeParticipantId ? {...p, currentPlaceId: targetPlaceId} : p))
+            prev.map((p) => (p.id === activeParticipantId ? { ...p, currentPlaceId: targetPlaceId } : p))
         );
         setIsUpdatingPosition(true);
         try {
@@ -134,7 +155,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         const trimmed = manualInput.trim().toLowerCase();
         if (!trimmed) return;
         const found = environment.places.find(
-            (p) => p.id.toLowerCase() === trimmed || p.name.toLowerCase().includes(trimmed)
+            (p) => p.id.toLowerCase() === trimmed || (p.name && p.name.toLowerCase().includes(trimmed))
         );
         if (found) {
             await moveActiveParticipant(found.id);
@@ -147,7 +168,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     const handleSaveAllAttributes = async () => {
         if (!currentPlace) return;
         setIsSavingAttributes(true);
-        const previousAttributes = {...(currentPlace.attributes || {})};
+        const previousAttributes = { ...(currentPlace.attributes || {}) };
         try {
             const parsedAttributes: Record<string, any> = {};
             for (const [key, rawValue] of Object.entries(draftAttributes)) {
@@ -162,7 +183,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
             }
             setEnvironment((prev) => ({
                 ...prev,
-                places: prev.places.map((p) => (p.id === currentPlace.id ? {...p, attributes: parsedAttributes} : p)),
+                places: prev.places.map((p) => (p.id === currentPlace.id ? { ...p, attributes: parsedAttributes } : p)),
             }));
             Alert.alert('Success', 'Attributes updated successfully!');
         } catch (error) {
@@ -186,24 +207,26 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <Text style={styles.headerTitle}>Interactive Map</Text>
-                <Text style={styles.headerSubtitle}>Simulate participant movements and manage local place attributes in
-                    real time.</Text>
+                <Text style={styles.headerSubtitle}>
+                    Simulate participant movements and manage local place attributes in real time.
+                </Text>
 
-                {/* GRIGLIA PRINCIPALE: MAPPA + PANNELLI */}
-                <View style={{flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 16, marginVertical: 15}}>
+                {/* MAIN GRID: LEAFLET MAP + PANELS */}
+                <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 16, marginVertical: 15 }}>
                     <LeafletMapView
                         environment={environment}
                         participants={participants}
                         activeParticipantId={activeParticipantId}
+                        activeTourSteps={activeTourSteps}
                     />
 
-                    <View style={{flex: Platform.OS === 'web' ? 1 : 1, gap: 16, maxHeight: 300}}>
-                        <LogicalPlacesPanel logicalPlaces={logicalPlaces} places={environment.places}/>
+                    <View style={{ flex: Platform.OS === 'web' ? 1 : 1, gap: 16, maxHeight: 300 }}>
+                        <LogicalPlacesPanel logicalPlaces={logicalPlaces} places={environment.places} />
 
                         {/* PHYSICAL PLACES PANEL */}
                         <View style={styles.panelCard}>
                             <Text style={styles.panelTitle}>Physical Places</Text>
-                            <ScrollView nestedScrollEnabled style={{maxHeight: 230}}>
+                            <ScrollView nestedScrollEnabled style={{ maxHeight: 230 }}>
                                 {environment.places.map((place) => (
                                     <View key={place.id} style={styles.physicalCard}>
                                         <Text style={styles.physicalTitle}>{place.name || place.id}</Text>
@@ -223,7 +246,14 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     </View>
                 </View>
 
-                {/* TABS PARTECIPANTI */}
+                {/* POI LIST AND ITINERARY DETAILS */}
+                {activeTour && (
+                    <View style={{ marginBottom: 20 }}>
+                        <POIList tourResult={activeTour} places={environment.places} />
+                    </View>
+                )}
+
+                {/* PARTICIPANT TABS */}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorContainer}>
                     {participants.map((p) => {
                         const isActive = p.id === activeParticipantId;
@@ -259,12 +289,15 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                             onChangeText={setManualInput}
                         />
                         <TouchableOpacity
-                            style={[styles.manualButton, isUpdatingPosition && {opacity: 0.6}]}
+                            style={[styles.manualButton, isUpdatingPosition && { opacity: 0.6 }]}
                             onPress={handleManualMove}
                             disabled={isUpdatingPosition}
                         >
-                            {isUpdatingPosition ? <ActivityIndicator size="small" color="#0F172A"/> :
-                                <Text style={styles.manualButtonText}>SET POSITION</Text>}
+                            {isUpdatingPosition ? (
+                                <ActivityIndicator size="small" color="#0F172A" />
+                            ) : (
+                                <Text style={styles.manualButtonText}>SET POSITION</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -275,36 +308,43 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     <Text style={styles.placeTitle}>{currentPlace?.name || currentPlace?.id || 'Unknown Place'}</Text>
                 </View>
 
-                {/* ATTRIBUTI LUOGO CORRENTE */}
+                {/* CURRENT PLACE ATTRIBUTES */}
                 {currentPlace && (
-                    <View style={{marginBottom: 20}}>
+                    <View style={{ marginBottom: 20 }}>
                         <PlaceAttributesCard
                             placeName={currentPlace.name || currentPlace.id || 'Unknown'}
                             attributes={draftAttributes}
-                            onAttributeChange={(k, v) => setDraftAttributes((prev) => ({...prev, [k]: v}))}
+                            onAttributeChange={(k, v) => setDraftAttributes((prev) => ({ ...prev, [k]: v }))}
                         />
                         <TouchableOpacity
-                            style={[styles.moveButton, {
-                                marginTop: 12,
-                                backgroundColor: '#38BDF8'
-                            }, isSavingAttributes && {opacity: 0.6}]}
+                            style={[
+                                styles.moveButton,
+                                { marginTop: 12, backgroundColor: '#38BDF8' },
+                                isSavingAttributes && { opacity: 0.6 },
+                            ]}
                             onPress={handleSaveAllAttributes}
                             disabled={isSavingAttributes}
                         >
-                            {isSavingAttributes ? <ActivityIndicator size="small" color="#0F172A"/> :
-                                <Text style={[styles.moveButtonText, {color: '#0F172A'}]}>UPDATE ATTRIBUTES</Text>}
+                            {isSavingAttributes ? (
+                                <ActivityIndicator size="small" color="#0F172A" />
+                            ) : (
+                                <Text style={[styles.moveButtonText, { color: '#0F172A' }]}>UPDATE ATTRIBUTES</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 )}
 
-                {/* LUOGHI ADIACENTI */}
+                {/* ADJACENT PLACES */}
                 {adjacentPlaces.length > 0 && (
-                    <View style={{marginBottom: 20}}>
+                    <View style={{ marginBottom: 20 }}>
                         <Text style={styles.sectionHeader}>MOVE TO ADJACENT PLACE</Text>
                         <View style={styles.adjacentList}>
                             {adjacentPlaces.map((adj) => (
-                                <TouchableOpacity key={adj.id} style={styles.adjacentCard}
-                                                  onPress={() => moveActiveParticipant(adj.id)}>
+                                <TouchableOpacity
+                                    key={adj.id}
+                                    style={styles.adjacentCard}
+                                    onPress={() => moveActiveParticipant(adj.id)}
+                                >
                                     <View>
                                         <Text style={styles.adjacentName}>{adj.name || adj.id}</Text>
                                         <Text style={styles.adjacentSub}>Adjacent Location</Text>
@@ -317,7 +357,6 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                         </View>
                     </View>
                 )}
-
             </ScrollView>
         </View>
     );
