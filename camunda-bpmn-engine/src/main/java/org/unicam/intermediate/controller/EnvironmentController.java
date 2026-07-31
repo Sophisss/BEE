@@ -16,8 +16,10 @@ import org.unicam.intermediate.models.pojo.Edge;
 import org.unicam.intermediate.models.pojo.LogicalPlace;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
 import org.unicam.intermediate.models.pojo.Participant;
+import org.unicam.intermediate.models.dto.TourResponse;
 import org.unicam.intermediate.service.environmental.EnvironmentDataService;
 import org.unicam.intermediate.service.environmental.EnvironmentalTaskRegistry;
+import org.unicam.intermediate.service.environmental.ParticipantTourService;
 import org.unicam.intermediate.service.environmental.SensorDataService;
 import org.unicam.intermediate.service.environmental.binding.BindingTaskRegistry;
 import org.unicam.intermediate.service.environmental.movement.MovementTaskRegistry;
@@ -39,6 +41,7 @@ public class EnvironmentController {
     private final MovementTaskRegistry movementTaskRegistry;
     private final BindingTaskRegistry bindingTaskRegistry;
     private final UnbindingTaskRegistry unbindingTaskRegistry;
+    private final ParticipantTourService participantTourService;
     private final SensorDataService sensorDataService;
 
     @GetMapping("/reload")
@@ -205,6 +208,24 @@ public class EnvironmentController {
             log.error("[Environment API] Failed to retrieve pending actions for participant: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Response.error("Failed to retrieve pending actions: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/participants/{id}/tour")
+    public ResponseEntity<Response<TourResponse>> getParticipantTour(@PathVariable String id) {
+        try {
+            Optional<Participant> participant = participantDataService.getParticipant(id);
+            if (participant.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Response.error("Participant not found: " + id));
+            }
+
+            TourResponse tour = participantTourService.calculateTour(participant.get());
+            return ResponseEntity.ok(Response.ok(tour));
+        } catch (Exception e) {
+            log.error("[Environment API] Failed to calculate tour for participant: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Response.error("Failed to calculate tour: " + e.getMessage()));
         }
     }
 

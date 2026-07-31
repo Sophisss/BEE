@@ -1,4 +1,5 @@
 import {Participant, PendingAction} from '../types/navigation';
+import { TourResult } from './navigationService';
 
 /**
  * Returns the default base URL for the backend API.
@@ -13,12 +14,16 @@ export function defaultBaseUrl(): string {
  */
 let currentBaseUrl: string = defaultBaseUrl();
 
+function normalizeBaseUrl(url: string): string {
+    return (url || '').trim().replace(/\/$/, '');
+}
+
 /**
  * Sets a new base URL for API requests.
  * @param {string} url - The new base URL to set.
  */
 export function setBaseUrl(url: string): void {
-    currentBaseUrl = url;
+    currentBaseUrl = normalizeBaseUrl(url) || defaultBaseUrl();
 }
 
 /**
@@ -26,7 +31,7 @@ export function setBaseUrl(url: string): void {
  * @returns {string} Cleaned base URL.
  */
 export function getBaseUrl(): string {
-    return (currentBaseUrl || 'http://localhost:8082').trim().replace(/\/$/, '');
+    return normalizeBaseUrl(currentBaseUrl) || defaultBaseUrl();
 }
 
 /**
@@ -65,6 +70,25 @@ async function apiCall<T>(method: string, path: string, body?: any): Promise<T> 
     }
 
     return json;
+}
+
+/**
+ * Fetches the current position of a participant.
+ *
+ * Endpoint: GET /api/environment/participants/{id}/position
+ *
+ * @param {string} participantId - Participant identifier.
+ * @returns {Promise<string>} Current place id or empty string.
+ */
+export async function fetchParticipantPositionApi(participantId: string): Promise<string> {
+    if (!participantId) return '';
+
+    const res = await apiCall<{ data?: string }>(
+        'GET',
+        `/api/environment/participants/${encodeURIComponent(participantId)}/position`
+    );
+
+    return (res && res.data) || '';
 }
 
 /**
@@ -160,6 +184,30 @@ export async function updateParticipantPositionApi(
 }
 
 /**
+ * Updates a participant position by resolving GPS coordinates to a place.
+ *
+ * Endpoint: PUT /api/environment/participants/{id}/position/coordinates
+ *
+ * @param {string} participantId - Participant identifier.
+ * @param {number} latitude - Latitude coordinate.
+ * @param {number} longitude - Longitude coordinate.
+ * @returns {Promise<string>} Resolved place id or empty string.
+ */
+export async function updateParticipantPositionFromCoordinatesApi(
+    participantId: string,
+    latitude: number,
+    longitude: number
+): Promise<string> {
+    const res = await apiCall<{ data?: string }>(
+        'PUT',
+        `/api/environment/participants/${encodeURIComponent(participantId)}/position/coordinates`,
+        {latitude, longitude}
+    );
+
+    return (res && res.data) || '';
+}
+
+/**
  * Fetches all pending actions assigned to a specific participant.
  *
  * Endpoint: GET /api/environment/participants/{id}/actions/pending
@@ -186,6 +234,23 @@ export async function refreshPendingActionsApi(participantId: string): Promise<P
         console.warn('Failed to load pending actions:', err);
         return [];
     }
+}
+
+/**
+ * Fetches the computed POI/path tour for a participant from the engine.
+ *
+ * Endpoint: GET /api/environment/participants/{id}/tour
+ *
+ * @param {string} participantId - Participant identifier.
+ * @returns {Promise<TourResult>} Computed tour result.
+ */
+export async function fetchParticipantTourApi(participantId: string): Promise<TourResult> {
+    const res = await apiCall<{ data?: TourResult }>(
+        'GET',
+        `/api/environment/participants/${encodeURIComponent(participantId)}/tour`
+    );
+
+    return (res && res.data) || { targetPlaceIds: [], navigationPath: [] };
 }
 
 /**

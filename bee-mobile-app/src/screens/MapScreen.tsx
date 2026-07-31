@@ -12,13 +12,15 @@ import {
     fetchPhysicalPlacesApi,
     fetchLogicalPlacesApi,
     fetchEdgesApi,
+    fetchParticipantPositionApi,
+    fetchParticipantTourApi,
     refreshParticipantsApi,
     refreshPendingActionsApi,
+    updateParticipantPositionFromCoordinatesApi,
     updateParticipantPositionApi,
     updatePlaceAttributeApi,
 } from '../services/api';
 import {
-    generateGenericTour,
     buildTourStepsForMap,
     TourResult,
 } from '../services/navigationService';
@@ -30,7 +32,9 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     const [participants, setParticipants] = useState<Participant[]>(route.params?.participants || []);
     const [activeParticipantId, setActiveParticipantId] = useState<string>(participants[0]?.id || '');
     const [environment, setEnvironment] = useState<EnvironmentData>({places: [], edges: []});
-    const [manualInput, setManualInput] = useState('');
+    const [positionInput, setPositionInput] = useState('');
+    const [latitudeInput, setLatitudeInput] = useState('');
+    const [longitudeInput, setLongitudeInput] = useState('');
     const [logicalPlaces, setLogicalPlaces] = useState<Record<string, string[]>>({});
     const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
     const [loadingActions, setLoadingActions] = useState<boolean>(false);
@@ -43,13 +47,25 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     const activeParticipant = participants.find((p) => p.id === activeParticipantId);
     const currentPlace = environment.places.find((p) => p.id === activeParticipant?.currentPlaceId);
 
-    // 1. Calculate Tour for the active participant
+    // 1. Load tour for the active participant from the engine
     useEffect(() => {
-        if (environment.places.length > 0 && activeParticipant) {
-            const tour = generateGenericTour(environment, activeParticipant);
-            setActiveTour(tour);
+        if (!activeParticipantId) {
+            setActiveTour(null);
+            return;
         }
-    }, [environment, activeParticipant, activeParticipantId]);
+
+        const loadTour = async () => {
+            try {
+                const tour = await fetchParticipantTourApi(activeParticipantId);
+                setActiveTour(tour);
+            } catch (error) {
+                console.warn('Failed to load tour from backend:', error);
+                setActiveTour(null);
+            }
+        };
+
+        loadTour();
+    }, [activeParticipantId, activeParticipant?.currentPlaceId]);
 
     // 2. Prepare tour steps for LeafletMapView
     const activeTourSteps = useMemo(() => {
@@ -60,6 +76,41 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     useEffect(() => {
         setDraftAttributes(currentPlace ? (currentPlace.attributes || {}) : {});
     }, [currentPlace?.id]);
+
+    useEffect(() => {
+        setPositionInput(activeParticipant?.currentPlaceId || '');
+    }, [activeParticipantId, activeParticipant?.currentPlaceId]);
+
+    const matchesLogicalCondition = (place: any, condition: any) => {
+        const attrs = place?.attributes || {};
+        const actualVal = attrs[condition.attribute];
+        const expectedVal = condition.value;
+
+        switch (condition.operator) {
+            case '==':
+                return actualVal === expectedVal;
+            case '!=':
+                return actualVal !== expectedVal;
+            case '>':
+            case '<':
+            case '>=':
+            case '<=': {
+                const actualNumber = Number(actualVal);
+                const expectedNumber = Number(expectedVal);
+
+                if (!Number.isFinite(actualNumber) || !Number.isFinite(expectedNumber)) {
+                    return false;
+                }
+
+                if (condition.operator === '>') return actualNumber > expectedNumber;
+                if (condition.operator === '<') return actualNumber < expectedNumber;
+                if (condition.operator === '>=') return actualNumber >= expectedNumber;
+                return actualNumber <= expectedNumber;
+            }
+            default:
+                return false;
+        }
+    };
 
     useEffect(() => {
         const fetchEnvironmentData = async () => {
@@ -86,23 +137,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                         const conditions = logicalGroup.conditions || [];
                         normalizedLp[groupName] = ppData
                             .filter((place: any) => {
-                                const attrs = place.attributes || {};
-                                return conditions.every((cond: any) => {
-                                    const { attribute, operator, value } = cond;
-                                    const actualVal = attrs[attribute];
-                                    switch (operator) {
-                                        case '==':
-                                            return actualVal === value;
-                                        case '!=':
-                                            return actualVal !== value;
-                                        case '>':
-                                            return actualVal > value;
-                                        case '<':
-                                            return actualVal < value;
-                                        default:
-                                            return false;
-                                    }
-                                });
+                                return conditions.every((cond: any) => matchesLogicalCondition(place, cond));
                             })
                             .map((place: any) => place.id || place.name);
                     });
@@ -136,11 +171,21 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         fetchPendingActions().then(_ => console.log('Pending actions refreshed')).catch(e => console.warn('Error refreshing pending actions:', e));
     }, [activeParticipantId, activeParticipant?.currentPlaceId]);
 
+    const updateParticipantLocalPosition = (participantId: string, placeId: string) => {
+        setParticipants((prev) =>
+            prev.map((participant) =>
+                participant.id === participantId ? { ...participant, currentPlaceId: placeId } : participant
+            )
+        );
+
+        if (participantId === activeParticipantId) {
+            setPositionInput(placeId);
+        }
+    };
+
     const moveActiveParticipant = async (targetPlaceId: string) => {
         if (!activeParticipantId) return;
-        setParticipants((prev) =>
-            prev.map((p) => (p.id === activeParticipantId ? { ...p, currentPlaceId: targetPlaceId } : p))
-        );
+        updateParticipantLocalPosition(activeParticipantId, targetPlaceId);
         setIsUpdatingPosition(true);
         try {
             await updateParticipantPositionApi(activeParticipantId, targetPlaceId);
@@ -151,17 +196,77 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         }
     };
 
+    const loadCurrentPosition = async () => {
+        if (!activeParticipantId) return;
+
+        try {
+            setIsUpdatingPosition(true);
+            const position = await fetchParticipantPositionApi(activeParticipantId);
+            setPositionInput(position || '');
+            updateParticipantLocalPosition(activeParticipantId, position || '');
+        } catch (error) {
+            Alert.alert('Sync Error', 'Failed to load the current position from the backend.');
+        } finally {
+            setIsUpdatingPosition(false);
+        }
+    };
+
     const handleManualMove = async () => {
-        const trimmed = manualInput.trim().toLowerCase();
+        const trimmed = positionInput.trim().toLowerCase();
         if (!trimmed) return;
         const found = environment.places.find(
             (p) => p.id.toLowerCase() === trimmed || (p.name && p.name.toLowerCase().includes(trimmed))
         );
         if (found) {
             await moveActiveParticipant(found.id);
-            setManualInput('');
         } else {
-            Alert.alert('Place Not Found', `No matching place found for "${manualInput}".`);
+            Alert.alert('Place Not Found', `No matching place found for "${positionInput}".`);
+        }
+    };
+
+    const usePhoneGps = () => {
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+            Alert.alert('GPS unavailable', 'Device geolocation is not available in this runtime.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setLatitudeInput(pos.coords.latitude.toFixed(6));
+                setLongitudeInput(pos.coords.longitude.toFixed(6));
+            },
+            (error) => {
+                Alert.alert('GPS error', error.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+        );
+    };
+
+    const handleSetPositionFromCoordinates = async () => {
+        if (!activeParticipantId) return;
+
+        const latitude = Number(latitudeInput);
+        const longitude = Number(longitudeInput);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            Alert.alert('Invalid coordinates', 'Latitude and longitude must be valid numbers.');
+            return;
+        }
+
+        setIsUpdatingPosition(true);
+        try {
+            const resolvedPlaceId = await updateParticipantPositionFromCoordinatesApi(
+                activeParticipantId,
+                latitude,
+                longitude
+            );
+            updateParticipantLocalPosition(activeParticipantId, resolvedPlaceId || '');
+            if (!resolvedPlaceId) {
+                Alert.alert('Position updated', 'No matching place was found for the supplied coordinates.');
+            }
+        } catch (error) {
+            Alert.alert('Sync Error', 'Position updated locally, but failed on backend.');
+        } finally {
+            setIsUpdatingPosition(false);
         }
     };
 
@@ -277,7 +382,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     actionError={actionError}
                 />
 
-                {/* MANUAL MOVE */}
+                {/* PARTICIPANT POSITION BY PLACE ID */}
                 <View style={styles.manualCard}>
                     <Text style={styles.manualTitle}>UPDATE PARTICIPANT POSITION</Text>
                     <View style={styles.manualRow}>
@@ -285,8 +390,8 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                             style={styles.manualInput}
                             placeholder="ID or Place Name (e.g., place1, place2)"
                             placeholderTextColor="#64748B"
-                            value={manualInput}
-                            onChangeText={setManualInput}
+                            value={positionInput}
+                            onChangeText={setPositionInput}
                         />
                         <TouchableOpacity
                             style={[styles.manualButton, isUpdatingPosition && { opacity: 0.6 }]}
@@ -297,6 +402,53 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                                 <ActivityIndicator size="small" color="#0F172A" />
                             ) : (
                                 <Text style={styles.manualButtonText}>SET POSITION</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.manualActionRow}>
+                        <TouchableOpacity
+                            style={styles.secondaryButton}
+                            onPress={loadCurrentPosition}
+                            disabled={isUpdatingPosition}
+                        >
+                            <Text style={styles.secondaryButtonText}>LOAD CURRENT POSITION</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={[styles.manualTitle, { marginTop: 14 }]}>UPDATE BY COORDINATES</Text>
+                    <View style={styles.coordinateRow}>
+                        <TextInput
+                            style={styles.coordinateInput}
+                            placeholder="Latitude"
+                            placeholderTextColor="#64748B"
+                            keyboardType="numeric"
+                            value={latitudeInput}
+                            onChangeText={setLatitudeInput}
+                        />
+                        <TextInput
+                            style={styles.coordinateInput}
+                            placeholder="Longitude"
+                            placeholderTextColor="#64748B"
+                            keyboardType="numeric"
+                            value={longitudeInput}
+                            onChangeText={setLongitudeInput}
+                        />
+                    </View>
+                    <View style={styles.manualActionRow}>
+                        <TouchableOpacity
+                            style={styles.secondaryButton}
+                            onPress={usePhoneGps}
+                        >
+                            <Text style={styles.secondaryButtonText}>USE PHONE GPS</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.manualButton, isUpdatingPosition && { opacity: 0.6 }]}
+                            onPress={handleSetPositionFromCoordinates}
+                            disabled={isUpdatingPosition}
+                        >
+                            {isUpdatingPosition ? (
+                                <ActivityIndicator size="small" color="#0F172A" />
+                            ) : (
+                                <Text style={styles.manualButtonText}>SET BY COORDINATES</Text>
                             )}
                         </TouchableOpacity>
                     </View>

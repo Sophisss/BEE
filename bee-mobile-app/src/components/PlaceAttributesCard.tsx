@@ -11,9 +11,39 @@ interface PlaceAttributesCardProps {
     onAttributeChange: (key: string, newValue: any) => void;
 }
 
+// --- TYPE DETECTION HELPERS ---
+
 const isBoolean = (value: any): boolean => typeof value === 'boolean' || value === 'true' || value === 'false';
 const toBoolean = (value: any): boolean => typeof value === 'boolean' ? value : value === 'true';
 const isNumeric = (value: any): boolean => !isNaN(Number(value)) && String(value).trim() !== '' && !isBoolean(value);
+
+/**
+ * Checks if a value is an Array or a string representation of an array (e.g. "[]").
+ */
+const isArrayLike = (val: any): boolean => {
+    if (Array.isArray(val)) return true;
+    if (typeof val === 'string') {
+        const trimmed = val.trim();
+        return trimmed.startsWith('[') && trimmed.endsWith(']');
+    }
+    return false;
+};
+
+/**
+ * Safely parses any array-like value into a native JavaScript string array.
+ */
+const parseToArray = (val: any): string[] => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') {
+        try {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed)) return parsed;
+        } catch {
+            return [];
+        }
+    }
+    return [];
+};
 
 /**
  * Helper component that decides which input control (Chip Selector, Switch, Numeric Input, or Text Input) to render.
@@ -25,9 +55,9 @@ const AttributeInput: React.FC<{
     onChange: (key: string, newValue: any) => void;
 }> = ({ attrKey, value, availablePreferences = [], onChange }) => {
 
-    // 1. Preferences array (Tags selector)
-    if (Array.isArray(value) || attrKey === 'preferences') {
-        const currentArray: string[] = Array.isArray(value) ? value : [];
+    // 1. Array / Tags / Choices Selector (Handles both native arrays and "[]" strings)
+    if (isArrayLike(value)) {
+        const currentArray = parseToArray(value);
 
         const togglePreference = (prefValue: string) => {
             const exists = currentArray.includes(prefValue);

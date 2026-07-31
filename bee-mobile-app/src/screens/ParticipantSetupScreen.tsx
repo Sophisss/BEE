@@ -1,9 +1,16 @@
 import React, {useState, useEffect, useMemo} from 'react';
-import {View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, Participant} from '../types/navigation';
 import {PlaceAttributesCard} from '../components/PlaceAttributesCard';
-import {refreshParticipantsApi, updateParticipantAttributesApi, fetchPhysicalPlacesApi} from '../services/api';
+import {
+    defaultBaseUrl,
+    fetchPhysicalPlacesApi,
+    getBaseUrl,
+    refreshParticipantsApi,
+    setBaseUrl,
+    updateParticipantAttributesApi,
+} from '../services/api';
 import {styles} from './ParticipantSetupScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParticipantSetup'>;
@@ -120,6 +127,7 @@ const ParticipantDropdown: React.FC<{
 export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [baseUrl, setBaseUrlInput] = useState<string>(getBaseUrl());
 
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [selectedParticipantId, setSelectedParticipantId] = useState<string>('');
@@ -253,6 +261,30 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
     return (
         <View style={styles.container}>
             <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content}>
+                <View style={styles.connectionCard}>
+                    <Text style={styles.connectionTitle}>Connection</Text>
+                    <Text style={styles.connectionLabel}>Engine Base URL</Text>
+                    <TextInput
+                        style={styles.connectionInput}
+                        value={baseUrl}
+                        onChangeText={(value) => {
+                            setBaseUrlInput(value);
+                            setBaseUrl(value);
+                        }}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        placeholder={defaultBaseUrl()}
+                        placeholderTextColor="#64748B"
+                    />
+                    <TouchableOpacity
+                        style={styles.refreshButton}
+                        onPress={loadScreenData}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.refreshButtonText}>REFRESH PARTICIPANTS</Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Header Information */}
                 <Text style={styles.title}>Process Participants</Text>
                 <Text style={styles.subtitle}>
@@ -280,14 +312,6 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
                     }}
                     currentParticipantName={currentParticipant?.name}
                 />
-
-                <TouchableOpacity
-                    style={styles.refreshButton}
-                    onPress={loadScreenData}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.refreshButtonText}>REFRESH PARTICIPANTS</Text>
-                </TouchableOpacity>
 
                 {/* Participant Attributes Card Editor */}
                 {currentParticipant && (

@@ -32,6 +32,38 @@ export const styles = StyleSheet.create({
         color: '#94A3B8',
         marginBottom: 20
     },
+    connectionCard: {
+        backgroundColor: '#1E293B',
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#334155',
+        marginBottom: 20,
+    },
+    connectionTitle: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#38BDF8',
+        letterSpacing: 1,
+        marginBottom: 10,
+    },
+    connectionLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#94A3B8',
+        marginBottom: 6,
+    },
+    connectionInput: {
+        backgroundColor: '#0F172A',
+        color: '#FFFFFF',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#334155',
+        fontSize: 14,
+        marginBottom: 12,
+    },
     sectionTitle: {
         fontSize: 11,
         fontWeight: 'bold',
