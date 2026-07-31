@@ -1,12 +1,42 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, Participant} from '../types/navigation';
 import {PlaceAttributesCard} from '../components/PlaceAttributesCard';
-import {refreshParticipantsApi, updateParticipantAttributesApi} from '../services/api';
+import {refreshParticipantsApi, updateParticipantAttributesApi, fetchPhysicalPlacesApi} from '../services/api';
 import {styles} from './ParticipantSetupScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParticipantSetup'>;
+
+/**
+ * Extracts unique tag preferences from a list of physical places.
+ * Handles tags provided as a comma-separated string or as an array of strings.
+ *
+ * @param physicalPlaces - Array of physical place objects retrieved from the engine API.
+ * @returns An array of unique, trimmed preference tag strings.
+ */
+const extractPreferencesFromPlaces = (physicalPlaces: any[] = []): string[] => {
+    const preferencesSet = new Set<string>();
+
+    physicalPlaces.forEach((place) => {
+        const rawTags = place?.attributes?.tags || place?.tags;
+
+        if (typeof rawTags === 'string' && rawTags.trim() !== '') {
+            rawTags.split(',').forEach((tag) => {
+                const cleaned = tag.trim();
+                if (cleaned) preferencesSet.add(cleaned);
+            });
+        } else if (Array.isArray(rawTags)) {
+            rawTags.forEach((tag) => {
+                if (typeof tag === 'string' && tag.trim()) {
+                    preferencesSet.add(tag.trim());
+                }
+            });
+        }
+    });
+
+    return Array.from(preferencesSet);
+};
 
 /**
  * Sanitizes participant names by removing text enclosed in parentheses
@@ -101,15 +131,25 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
     /** Active participant object computed from state selection */
     const currentParticipant = participants.find((p) => p.id === selectedParticipantId);
 
+    const [physicalPlaces, setPhysicalPlaces] = useState<any[]>([]);
+    const availablePreferences = useMemo(() => {
+        return extractPreferencesFromPlaces(physicalPlaces);
+    }, [physicalPlaces]);
+
     /**
-     * Fetches participants from the engine API and sanitizes their display names.
+     * Fetches participants and physical places from backend APIs, sanitizes names,
+     * and initializes state for the dropdown and attribute editor.
+     * Handles errors and sets loading state accordingly.
      */
-    const fetchProcessParticipants = async () => {
+    const loadScreenData = async () => {
         try {
             setLoading(true);
             setErrorMsg(null);
 
-            const loadedParticipants = await refreshParticipantsApi();
+            const [loadedParticipants, places] = await Promise.all([
+                refreshParticipantsApi(),
+                fetchPhysicalPlacesApi(),
+            ]);
 
             const sanitizedParticipants = loadedParticipants.map((p) => ({
                 ...p,
@@ -121,6 +161,10 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
             if (sanitizedParticipants.length > 0 && !selectedParticipantId) {
                 setSelectedParticipantId(sanitizedParticipants[0].id);
             }
+
+            if (Array.isArray(places)) {
+                setPhysicalPlaces(places);
+            }
         } catch (error: any) {
             console.error('Error retrieving process participants:', error);
             setErrorMsg(error.message || 'Unable to connect to process engine');
@@ -130,7 +174,7 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
     };
 
     useEffect(() => {
-        fetchProcessParticipants().then(_ => console.log('Initial participant fetch complete.'));
+        loadScreenData().then(_ => console.log('ParticipantSetupScreen data loaded.'));
     }, []);
 
     /**
@@ -219,7 +263,7 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
                 {errorMsg && (
                     <ConnectionErrorCard
                         errorMsg={errorMsg}
-                        onRetry={fetchProcessParticipants}
+                        onRetry={loadScreenData}
                     />
                 )}
 
@@ -239,7 +283,7 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
 
                 <TouchableOpacity
                     style={styles.refreshButton}
-                    onPress={fetchProcessParticipants}
+                    onPress={loadScreenData}
                     activeOpacity={0.7}
                 >
                     <Text style={styles.refreshButtonText}>REFRESH PARTICIPANTS</Text>
@@ -251,6 +295,7 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
                         <PlaceAttributesCard
                             placeName={currentParticipant.name}
                             attributes={currentParticipant.attributes}
+                            availablePreferences={availablePreferences}
                             onAttributeChange={handleAttributeChange}
                         />
                     </View>

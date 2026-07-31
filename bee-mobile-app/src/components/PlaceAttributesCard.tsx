@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TextInput, Switch, StyleSheet} from 'react-native';
+import { View, Text, TextInput, Switch, TouchableOpacity, StyleSheet } from 'react-native';
 
 /**
  * Props definition for the PlaceAttributesCard component.
@@ -7,44 +7,67 @@ import {View, Text, TextInput, Switch, StyleSheet} from 'react-native';
 interface PlaceAttributesCardProps {
     placeName: string;
     attributes?: Record<string, any>;
+    availablePreferences?: string[];
     onAttributeChange: (key: string, newValue: any) => void;
 }
 
-/**
- * Utility: Checks if a value represents a boolean type (boolean or string representation).
- */
-const isBoolean = (value: any): boolean => {
-    return (
-        typeof value === 'boolean' ||
-        value === 'true' ||
-        value === 'false'
-    );
-};
+const isBoolean = (value: any): boolean => typeof value === 'boolean' || value === 'true' || value === 'false';
+const toBoolean = (value: any): boolean => typeof value === 'boolean' ? value : value === 'true';
+const isNumeric = (value: any): boolean => !isNaN(Number(value)) && String(value).trim() !== '' && !isBoolean(value);
 
 /**
- * Utility: Converts a supported value to a strict boolean primitive.
- */
-const toBoolean = (value: any): boolean => {
-    if (typeof value === 'boolean') return value;
-    return value === 'true';
-};
-
-/**
- * Utility: Checks if a value is strictly numeric (excluding booleans).
- */
-const isNumeric = (value: any): boolean => {
-    return !isNaN(Number(value)) && String(value).trim() !== '' && !isBoolean(value);
-};
-
-/**
- * Helper component that decides which input control (Switch, Numeric Input, or Text Input) to render.
+ * Helper component that decides which input control (Chip Selector, Switch, Numeric Input, or Text Input) to render.
  */
 const AttributeInput: React.FC<{
     attrKey: string;
     value: any;
+    availablePreferences?: string[];
     onChange: (key: string, newValue: any) => void;
-}> = ({attrKey, value, onChange}) => {
-    // 1. Render Boolean Switch Control
+}> = ({ attrKey, value, availablePreferences = [], onChange }) => {
+
+    // 1. Preferences array (Tags selector)
+    if (Array.isArray(value) || attrKey === 'preferences') {
+        const currentArray: string[] = Array.isArray(value) ? value : [];
+
+        const togglePreference = (prefValue: string) => {
+            const exists = currentArray.includes(prefValue);
+            const updatedArray = exists
+                ? currentArray.filter((item) => item !== prefValue)
+                : [...currentArray, prefValue];
+
+            onChange(attrKey, updatedArray);
+        };
+
+        if (availablePreferences.length === 0) {
+            return (
+                <Text style={styles.emptyText}>
+                    No available tags found.
+                </Text>
+            );
+        }
+
+        return (
+            <View style={styles.chipContainer}>
+                {availablePreferences.map((prefTag) => {
+                    const isSelected = currentArray.includes(prefTag);
+                    return (
+                        <TouchableOpacity
+                            key={prefTag}
+                            style={[styles.chip, isSelected && styles.chipSelected]}
+                            onPress={() => togglePreference(prefTag)}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                {isSelected ? '✓ ' : '+ '}{prefTag}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        );
+    }
+
+    // 2. Boolean Switch (e.g. guided, needs_accessibility)
     if (isBoolean(value)) {
         const boolVal = toBoolean(value);
         return (
@@ -55,14 +78,14 @@ const AttributeInput: React.FC<{
                 <Switch
                     value={boolVal}
                     onValueChange={(newVal) => onChange(attrKey, newVal)}
-                    trackColor={{false: '#334155', true: '#0F2942'}}
+                    trackColor={{ false: '#334155', true: '#0F2942' }}
                     thumbColor={boolVal ? '#38BDF8' : '#94A3B8'}
                 />
             </View>
         );
     }
 
-    // 2. Render Numeric TextInput
+    // 3. Numeric TextInput (e.g. available_time)
     if (isNumeric(value)) {
         return (
             <TextInput
@@ -75,7 +98,7 @@ const AttributeInput: React.FC<{
         );
     }
 
-    // 3. Fallback: Standard Text TextInput
+    // 4. Fallback: Standard Text TextInput (e.g. language or any free text attribute)
     return (
         <TextInput
             style={styles.input}
@@ -87,11 +110,12 @@ const AttributeInput: React.FC<{
 };
 
 /**
- * Component that renders an editable list of key-value attributes for a given Place.
+ * Component that renders an editable list of key-value attributes for a given Place or Participant.
  */
 export const PlaceAttributesCard: React.FC<PlaceAttributesCardProps> = ({
                                                                             placeName,
                                                                             attributes = {},
+                                                                            availablePreferences = [],
                                                                             onAttributeChange,
                                                                         }) => {
     if (Object.keys(attributes).length === 0) return null;
@@ -99,7 +123,7 @@ export const PlaceAttributesCard: React.FC<PlaceAttributesCardProps> = ({
     return (
         <View style={styles.container}>
             <Text style={styles.badgeText}>
-                ATTRIBUTES OF: {placeName.toUpperCase()}
+                PROFILE AND CONFIGURATION: {placeName.toUpperCase()}
             </Text>
 
             {Object.entries(attributes).map(([key, val]) => (
@@ -110,6 +134,7 @@ export const PlaceAttributesCard: React.FC<PlaceAttributesCardProps> = ({
                     <AttributeInput
                         attrKey={key}
                         value={val}
+                        availablePreferences={availablePreferences}
                         onChange={onAttributeChange}
                     />
                 </View>
@@ -144,7 +169,7 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontWeight: 'bold',
         color: '#38BDF8',
-        marginBottom: 6,
+        marginBottom: 8,
         letterSpacing: 0.8,
     },
     toggleContainer: {
@@ -166,5 +191,36 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 6,
         fontSize: 14,
+    },
+    chipContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        backgroundColor: '#334155',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#475569',
+    },
+    chipSelected: {
+        backgroundColor: '#0F2942',
+        borderColor: '#38BDF8',
+    },
+    chipText: {
+        color: '#94A3B8',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    chipTextSelected: {
+        color: '#38BDF8',
+        fontWeight: 'bold',
+    },
+    emptyText: {
+        color: '#64748B',
+        fontSize: 12,
+        fontStyle: 'italic',
     },
 });

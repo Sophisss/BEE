@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { PhysicalPlace, LogicalPlace, Edge, View } from './envTypes';
-import { clearFeatures, removeFeature, drawPlace, drawEdge, getFeature, enablePlaceDrawing, enableEdgeDrawing, disableDrawing, fitFeaturesOnMap} from './utils';
+import { clearFeatures, removeFeature, drawPlace, drawEdge, getFeature, enablePlaceDrawing, enableEdgeDrawing, disableDrawing} from './utils';
 import Map from 'ol/Map.js';
 
 type EnvStore = {
@@ -65,10 +65,27 @@ export const useEnvStore = create<EnvStore>((set, get) => ({
     edges: [],
     views: [],
 
-    addPlace: (place) =>
+/*    addPlace: (place) =>
         set((state) => ({
             physicalPlaces: [...state.physicalPlaces, place]
-        })),
+        })),*/
+
+    addPlace: (place) =>
+        set((state) => {
+            // Ensure every created physical place includes default attributes and a 'tags' array,
+            // which serves as the source for dynamic preferences/choices in the app.
+            const placeWithDefaultTags: PhysicalPlace = {
+                ...place,
+                attributes: {
+                    tags: [], // Default fallback value for tags
+                    ...(place.attributes || {}), // Preserve any existing attributes defined during creation
+                },
+            };
+
+            return {
+                physicalPlaces: [...state.physicalPlaces, placeWithDefaultTags]
+            };
+        }),
 
     updatePlace: (id, updatedPlace) =>
         set((state) => ({
