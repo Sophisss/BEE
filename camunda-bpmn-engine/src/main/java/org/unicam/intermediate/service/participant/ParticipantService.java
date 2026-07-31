@@ -12,6 +12,7 @@ import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import java.util.Collection;
 
@@ -27,6 +28,10 @@ public class ParticipantService {
 
     @Autowired
     private RuntimeService runtimeService;
+
+    @Autowired
+    @Lazy
+    private ParticipantDataService participantDataService;
 
     // Cache collaboration data per business key to avoid repeated BPMN parsing
     private final Map<String, CollaborationData> collaborationCache = new ConcurrentHashMap<>();
@@ -78,7 +83,7 @@ public class ParticipantService {
 
     public String resolveParticipantForTask(Task task) {
         try {
-            // 1. Prima prova dalle variabili del processo
+            // 1. First test from the process variables
             ProcessInstance pi = runtimeService.createProcessInstanceQuery()
                     .processInstanceId(task.getProcessInstanceId())
                     .singleResult();
@@ -95,21 +100,21 @@ public class ParticipantService {
                 return participantId.toString();
             }
 
-            // 2. Ottieni il modello BPMN
+            // 2. Get the BPMN model
             BpmnModelInstance model = repositoryService.getBpmnModelInstance(task.getProcessDefinitionId());
 
-            // 3. Trova il task nel modello
+            // 3. Find the task in the model
             ModelElementInstance taskElement = model.getModelElementById(task.getTaskDefinitionKey());
             if (taskElement == null) {
                 log.warn("[ParticipantService] Task element {} not found in BPMN", task.getTaskDefinitionKey());
                 return "Participant_Default";
             }
 
-            // 4. Risali al processo che contiene questo task
+            // 4. Trace the process that contains this task
             if (taskElement instanceof FlowNode) {
                 FlowNode flowNode = (FlowNode) taskElement;
 
-                // Ottieni il subprocess o processo padre
+                // Get the subprocess or parent process
                 BaseElement container = (BaseElement) flowNode.getParentElement();
                 while (container != null && !(container instanceof Process)) {
                     container = (BaseElement) container.getParentElement();
@@ -118,7 +123,7 @@ public class ParticipantService {
                 if (container instanceof Process) {
                     Process process = (Process) container;
 
-                    // 5. Trova il participant che referenzia questo processo
+                    // 5. Find the participant that references this process
                     Collection<Participant> participants = model.getModelElementsByType(Participant.class);
                     for (Participant participant : participants) {
                         if (participant.getProcess() != null &&
@@ -133,7 +138,7 @@ public class ParticipantService {
                 }
             }
 
-            // 6. Se siamo in un processo senza collaboration, usa un default basato sul processo
+            // 6. If we are in a process without collaboration, use a process-based default
             String processKey = repositoryService.getProcessDefinition(task.getProcessDefinitionId()).getKey();
             String defaultParticipant = "Participant_" + processKey;
 
@@ -147,18 +152,18 @@ public class ParticipantService {
     }
 
     /**
-     * Metodo alternativo che usa l'execution context invece del task
+     * Alternative method using execution context instead of task
      */
     public String resolveParticipantFromExecution(DelegateExecution execution) {
         try {
             String processDefinitionId = execution.getProcessDefinitionId();
             BpmnModelInstance model = repositoryService.getBpmnModelInstance(processDefinitionId);
 
-            // Ottieni il processo corrente dall'execution
+            // Get the current process from execution
             String currentProcessId = execution.getProcessDefinitionId()
                     .substring(0, execution.getProcessDefinitionId().indexOf(':'));
 
-            // Trova la collaboration
+            // Find the collaboration
             Collection<Collaboration> collaborations = model.getModelElementsByType(Collaboration.class);
             if (collaborations.isEmpty()) {
                 log.debug("[ParticipantService] No collaboration found, single participant process");
@@ -167,7 +172,7 @@ public class ParticipantService {
 
             Collaboration collaboration = collaborations.iterator().next();
 
-            // Trova il participant per questo processo
+            // Find the participant for this process
             for (Participant participant : collaboration.getParticipants()) {
                 Process process = participant.getProcess();
                 if (process != null && process.getId().equals(currentProcessId)) {
@@ -259,6 +264,7 @@ public class ParticipantService {
             Collection<Participant> bpmnParticipants = collaboration.getParticipants();
 
             CollaborationData collabData = new CollaborationData();
+            List<org.unicam.intermediate.models.pojo.Participant> pojoListToPush = new ArrayList<>();
 
             for (Participant bpmnParticipant : bpmnParticipants) {
                 Process process = bpmnParticipant.getProcess();
@@ -275,25 +281,33 @@ public class ParticipantService {
                                     processKey
                             );
 
-                    if (process.getExtensionElements() != null) {
-                        process.getExtensionElements().getElementsQuery()
-                                .filterByType(CamundaProperties.class)
-                                .list()
-                                .forEach(element -> {
-                            element.getCamundaProperties().forEach(prop -> {
-                                participant.getAttributes().put(prop.getCamundaName(), prop.getCamundaValue());
-                            });
-                        });
+                    // --- Attribute extraction ---
+                    // 1. Try reading properties from bpmnParticipant first (<bpmn:participant>)
+                    extractCamundaProperties(bpmnParticipant.getExtensionElements(), participant);
 
-                        log.info("[ParticipantService] Extracted attributes for participant {}: {}",
-                                participantId, participant.getAttributes());
-                    }
+                    // 2. Try integrating with properties defined in the Process (<bpmn:process>)
+                    extractCamundaProperties(process.getExtensionElements(), participant);
+
+                    log.info("[ParticipantService] Extracted attributes for participant {}: {}",
+                            participantId, participant.getAttributes());
 
                     collabData.addParticipant(participant);
+
+                    org.unicam.intermediate.models.pojo.Participant pojo = new org.unicam.intermediate.models.pojo.Participant();
+                    pojo.setId(participantId);
+                    pojo.setName(participantName);
+                    pojo.setAttributes(participant.getAttributes());
+                    pojoListToPush.add(pojo);
 
                     log.debug("[ParticipantService] Found participant: {} -> {} ({})",
                             participantId, participantName, processKey);
                 }
+            }
+
+            if (!pojoListToPush.isEmpty() && participantDataService != null) {
+                participantDataService.mergeParticipants(pojoListToPush, "BPMN-Execution-Start");
+                log.info("[ParticipantService] Successfully pushed {} participants with attributes to ParticipantDataService",
+                        pojoListToPush.size());
             }
 
             log.info("[ParticipantService] Extracted collaboration with {} participants",
@@ -304,6 +318,22 @@ public class ParticipantService {
         } catch (Exception e) {
             log.error("[ParticipantService] Failed to extract collaboration data: {}", e.getMessage(), e);
             return createSingleParticipantCollaboration(execution);
+        }
+    }
+
+    /**
+     * Extracts CamundaProperties from ExtensionElements and inserts them into participant attributes.
+     */
+    private void extractCamundaProperties(ExtensionElements extensionElements, org.unicam.intermediate.models.Participant participant) {
+        if (extensionElements != null) {
+            extensionElements.getElementsQuery()
+                    .filterByType(CamundaProperties.class)
+                    .list()
+                    .forEach(camundaProps -> {
+                        camundaProps.getCamundaProperties().forEach(prop -> {
+                            participant.getAttributes().put(prop.getCamundaName(), prop.getCamundaValue());
+                        });
+                    });
         }
     }
 

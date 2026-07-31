@@ -274,6 +274,34 @@ public class EnvironmentController {
         }
     }
 
+    @PutMapping("/participants/{id}/attributes")
+    public ResponseEntity<Response<Participant>> updateParticipantAttributes(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> newAttributes) {
+
+        try {
+            Optional<Participant> participantOpt = participantDataService.getParticipant(id);
+            if (participantOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Response.error("Participant not found: " + id));
+            }
+
+            if (newAttributes == null || newAttributes.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Response.error("Request body must not be empty"));
+            }
+
+            Participant participant = participantOpt.get();
+            participantDataService.updateParticipantAttributes(id, newAttributes);
+
+            return ResponseEntity.ok(Response.ok(participant));
+        } catch (Exception e) {
+            log.error("[Environment API] Failed to update attributes for participant: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Response.error("Failed to update participant attributes: " + e.getMessage()));
+        }
+    }
+
     /**
      * Receives a lumen reading from a light sensor installed in a physical place.
      * If lumen >= threshold (default 300, configurable via sensors.light.threshold-lumen),

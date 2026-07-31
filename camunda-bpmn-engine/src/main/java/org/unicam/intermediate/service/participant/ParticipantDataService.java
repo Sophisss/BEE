@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,6 +160,25 @@ public class ParticipantDataService {
     }
 
     /**
+     * Updates or adds attributes for a specific participant.
+     */
+    public void updateParticipantAttributes(String id, Map<String, Object> newAttributes) {
+        if (id == null || newAttributes == null) {
+            return;
+        }
+        Participant participant = participantsMap.get(id);
+        if (participant != null) {
+            if (participant.getAttributes() == null) {
+                participant.setAttributes(new HashMap<>());
+            }
+            participant.getAttributes().putAll(newAttributes);
+            log.info("[ParticipantDataService] Updated attributes for participant {}: {}", id, newAttributes);
+        } else {
+            log.warn("[ParticipantDataService] Participant {} not found, cannot update attributes", id);
+        }
+    }
+
+    /**
      * Add a new participant dynamically (if needed in the future).
      */
     public void addParticipant(Participant participant) {
@@ -206,17 +226,7 @@ public class ParticipantDataService {
 
             ParticipantConfiguration config = mapper.readValue(jsonContent, ParticipantConfiguration.class);
             List<Participant> participants = config != null ? config.toParticipants() : List.of();
-
-            participantsMap.clear();
-            for (Participant participant : participants) {
-                if (participant != null && participant.getId() != null) {
-                    participantsMap.put(participant.getId(), participant);
-                }
-            }
-
-            log.info("[ParticipantDataService] Loaded {} participants from deployment JSON '{}'",
-                    participantsMap.size(), source);
-            return participantsMap.size();
+            return mergeParticipants(participants, source);
         } catch (Exception e) {
             log.warn("[ParticipantDataService] Could not apply deployment JSON '{}' as participants: {}",
                     source, e.getMessage());
@@ -249,10 +259,9 @@ public class ParticipantDataService {
     }
 
     /**
-     * Merges participants into the current set without overwriting existing ones.
-     * Only participants with new IDs are added.
-     *
-     * @return number of newly added participants
+     * Merges new participants with existing ones on the map.
+     * - If a participant does not exist, it is created (useful for BPMN without JSON).
+     * - If it already exists, its attributes and fields are merged without overwriting with null.
      */
     public synchronized int mergeParticipants(List<Participant> participants, String source) {
         if (participants == null || participants.isEmpty()) {
@@ -260,20 +269,45 @@ public class ParticipantDataService {
             return 0;
         }
 
-        int added = 0;
+        int addedCount = 0;
+        int updatedCount = 0;
+
         for (Participant participant : participants) {
             if (participant == null || participant.getId() == null || participant.getId().isBlank()) {
                 continue;
             }
 
-            Participant existing = participantsMap.putIfAbsent(participant.getId(), participant);
+            Participant existing = participantsMap.get(participant.getId());
             if (existing == null) {
-                added++;
+                participantsMap.put(participant.getId(), participant);
+                addedCount++;
+            } else {
+                enrichParticipant(existing, participant);
+                updatedCount++;
             }
         }
+        log.info("[ParticipantDataService] Merged participants from source '{}' -> added {}, updated {}",
+                source, addedCount, updatedCount);
+        return addedCount + updatedCount;
+    }
 
-        log.info("[ParticipantDataService] Merged participants from source '{}' -> added {}, total {}",
-                source, added, participantsMap.size());
-        return added;
+    /**
+     * Enriches the target participant with non-null and non-blank fields from the source participant.
+     * This method does not overwrite existing fields in the target with null or blank values from the
+     * source. It also merges attributes, ensuring that existing attributes are preserved and new ones are added.
+     */
+    private void enrichParticipant(Participant target, Participant source) {
+        if (source.getName() != null && !source.getName().isBlank()) {
+            target.setName(source.getName());
+        }
+        if (source.getPosition() != null && !source.getPosition().isBlank()) {
+            target.setPosition(source.getPosition());
+        }
+        if (source.getAttributes() != null && !source.getAttributes().isEmpty()) {
+            if (target.getAttributes() == null) {
+                target.setAttributes(new HashMap<>());
+            }
+            target.getAttributes().putAll(source.getAttributes());
+        }
     }
 }
