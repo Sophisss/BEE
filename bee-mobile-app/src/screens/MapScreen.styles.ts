@@ -1,163 +1,291 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-    screenContainer: {
+    container: {
         flex: 1,
-        backgroundColor: '#070D17',
+        backgroundColor: '#0F172A',
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 15,
-        backgroundColor: '#0E1726',
-        borderBottomWidth: 1,
-        borderBottomColor: '#1D2C3F',
-    },
-    backButton: {
-        backgroundColor: '#172334',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-    },
-    backButtonText: {
-        color: '#3388E6',
-        fontWeight: '600',
-        fontSize: 14,
+    scrollContent: {
+        padding: 20,
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#FFFFFF',
+        marginBottom: 4,
     },
-    headerPlaceholder: {
-        width: 60
-    },
-
-    // Map container
-    mapContainer: {
-        height: 260,
-        backgroundColor: '#0E1726',
-        margin: 20,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#1D2C3F',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-    },
-    mapPlaceholderText: {
-        color: '#6A798C',
-        fontSize: 16,
-        fontWeight: '600',
-        marginTop: 8,
-    },
-    mapSubtext: {
-        color: '#3F4E60',
-        fontSize: 12,
-        marginTop: 4,
-    },
-
-    // Map pin
-    mapPin1: {
-        position: 'absolute',
-        top: 40,
-        left: 50,
-        backgroundColor: '#F3B12C',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    mapPin2: {
-        position: 'absolute',
-        bottom: 50,
-        right: 60,
-        backgroundColor: '#3388E6',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    pinText: {
-        color: '#000',
-        fontWeight: 'bold',
-        fontSize: 11,
-    },
-
-    // Itinerary info & list of artworks
-    infoSection: {
-        flex: 1,
-        paddingHorizontal: 20,
+    headerSubtitle: {
+        fontSize: 13,
+        color: '#94A3B8',
     },
     sectionHeader: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#94A3B8',
+        marginBottom: 8,
+        letterSpacing: 1,
+    },
+    selectorContainer: {
+        flexDirection: 'row',
+        marginBottom: 16,
+        marginTop: 16,
+    },
+    participantTab: {
+        backgroundColor: '#1E293B',
+        padding: 10,
+        borderRadius: 8,
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: '#334155',
+    },
+    activeTab: {
+        backgroundColor: '#0F2942',
+        borderColor: '#38BDF8',
+    },
+    tabText: {
+        color: '#94A3B8',
+        fontWeight: 'bold',
+        fontSize: 13,
+    },
+    activeTabText: {
+        color: '#38BDF8',
+    },
+    tabSubText: {
+        color: '#64748B',
+        fontSize: 10,
+        marginTop: 2,
+    },
+    actionsCard: {
+        backgroundColor: '#1E293B',
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#334155',
+        marginBottom: 20,
+    },
+    actionsHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 15,
-    },
-    sectionTitle: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#6A798C',
-        letterSpacing: 0.8,
-    },
-    badgeInfo: {
-        color: '#E5A024',
-        fontSize: 13,
-        fontWeight: 'bold',
-    },
-
-    // Individual artwork record
-    artCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#0E1726',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#1D2C3F',
-        padding: 14,
         marginBottom: 12,
     },
-    badgeStep: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#172334',
+    actionsTitle: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#38BDF8',
+        letterSpacing: 1,
+    },
+    actionsList: {
+        gap: 10,
+    },
+    actionItem: {
+        backgroundColor: '#0F2942',
+        borderWidth: 1,
+        borderColor: '#1D4ED8',
+        borderRadius: 10,
+        padding: 12,
+    },
+    actionName: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#60A5FA',
+        marginBottom: 2,
+    },
+    actionMeta: {
+        fontSize: 11,
+        color: '#93C5FD',
+    },
+    emptyActionsText: {
+        color: '#64748B',
+        fontSize: 13,
+        fontStyle: 'italic',
+    },
+    manualCard: {
+        backgroundColor: '#1E293B',
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#334155',
+        marginBottom: 20,
+    },
+    manualTitle: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#F59E0B',
+        letterSpacing: 1,
+        marginBottom: 12,
+    },
+    manualRow: {
+        flexDirection: 'row',
+        gap: 10,
+        alignItems: 'center',
+    },
+    manualInput: {
+        flex: 1,
+        backgroundColor: '#0F172A',
+        color: '#FFFFFF',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 8,
+        fontSize: 15,
+        borderWidth: 1,
+        borderColor: '#334155',
+    },
+    manualButton: {
+        backgroundColor: '#F59E0B',
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 14,
-        borderWidth: 1,
-        borderColor: '#3388E6',
     },
-    badgeStepText: {
-        color: '#3388E6',
+    manualButtonText: {
+        color: '#0F172A',
         fontWeight: 'bold',
-        fontSize: 14,
+        fontSize: 10,
     },
-    artInfo: {
-        flex: 1,
+    currentCard: {
+        backgroundColor: '#1E293B',
+        padding: 18,
+        borderRadius: 14,
+        borderLeftWidth: 4,
+        borderLeftColor: '#38BDF8',
+        marginBottom: 20,
     },
-    artTitle: {
-        fontSize: 15,
+    badgeText: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#38BDF8',
+        letterSpacing: 1,
+        marginBottom: 6,
+    },
+    placeTitle: {
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#FFFFFF',
+        marginBottom: 4,
     },
-    artAuthor: {
-        fontSize: 13,
-        color: '#6A798C',
+    adjacentList: {
+        gap: 10,
+    },
+    adjacentCard: {
+        backgroundColor: '#1E293B',
+        padding: 14,
+        borderRadius: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: '#334155',
+        marginBottom: 10,
+    },
+    adjacentName: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+    adjacentSub: {
+        fontSize: 12,
+        color: '#64748B',
         marginTop: 2,
     },
-    artRoom: {
+    moveButton: {
+        backgroundColor: '#38BDF8',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 6,
+    },
+    moveButtonText: {
+        color: '#0F172A',
+        fontWeight: 'bold',
         fontSize: 12,
-        color: '#E5A024',
-        marginTop: 4,
-        fontWeight: '500',
     },
-    actionIcon: {
-        fontSize: 18,
-        color: '#6A798C',
-        paddingLeft: 10,
+    emptyText: {
+        fontSize: 12,
+        fontStyle: 'italic',
+        color: '#94a3b8',
     },
+    panelCard: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+    },
+    panelTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1e293b',
+        marginBottom: 10,
+    },
+    accordionContainer: {
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#cbd5e1',
+        borderRadius: 8,
+        overflow: 'hidden',
+        backgroundColor: '#ffffff',
+    },
+    accordionHeader: {
+        padding: 10,
+        backgroundColor: '#ffffff',
+    },
+    accordionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#0f172a',
+    },
+    accordionContent: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        backgroundColor: '#f1f5f9',
+        borderTopWidth: 1,
+        borderTopColor: '#e2e8f0',
+    },
+    logicalItem: {
+        paddingVertical: 4,
+    },
+    logicalItemName: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#1e293b',
+    },
+    logicalItemId: {
+        fontSize: 12,
+        fontFamily: 'monospace',
+        color: '#64748b',
+    },
+    physicalCard: {
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#cbd5e1',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 8,
+    },
+    physicalTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0f172a',
+        marginBottom: 6,
+    },
+    attributeRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 2,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    attrKey: {
+        fontSize: 12,
+        fontFamily: 'monospace',
+        color: '#475569',
+    },
+    attrVal: {
+        fontSize: 12,
+        fontFamily: 'monospace',
+        fontWeight: '600',
+        color: '#0f172a',
+    }
 });
