@@ -7,11 +7,17 @@ import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.model.bpmn.instance.ExtensionElements;
 import org.camunda.bpm.model.bpmn.instance.SequenceFlow;
 import org.camunda.bpm.model.xml.instance.DomElement;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
+import org.unicam.intermediate.models.pojo.Participant;
 import org.unicam.intermediate.service.environmental.EnvironmentDataService;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.participant.ParticipantService;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +39,7 @@ public class SequenceFlowGuardEvaluator {
     private final RuntimeService runtimeService;
     private final ParticipantDataService participantDataService;
     private final ParticipantService participantService;
+    private final ExpressionParser spelParser = new SpelExpressionParser();
 
     public SequenceFlowGuardEvaluator(EnvironmentDataService environmentDataService,
                                       RepositoryService repositoryService,
@@ -79,11 +86,11 @@ public class SequenceFlowGuardEvaluator {
             }
         }
 
-        return evaluateGuard(execution.getProcessDefinitionId(), sequenceFlowId, participantId);
+        return evaluateGuard(execution.getProcessDefinitionId(), sequenceFlowId, participantId, execution.getId());
     }
 
     public Boolean evaluateGuard(String processDefinitionId, String sequenceFlowId) {
-        return evaluateGuard(processDefinitionId, sequenceFlowId, null);
+        return evaluateGuard(processDefinitionId, sequenceFlowId, null, null);
     }
 
     public Boolean evaluateGuard(String processDefinitionId,
@@ -104,10 +111,14 @@ public class SequenceFlowGuardEvaluator {
             }
         }
 
-        return evaluateGuard(processDefinitionId, sequenceFlowId, effectiveParticipantId);
+        return evaluateGuardInternal(processDefinitionId, sequenceFlowId, effectiveParticipantId, executionId);
     }
 
     public Boolean evaluateGuard(String processDefinitionId, String sequenceFlowId, String participantId) {
+        return evaluateGuardInternal(processDefinitionId, sequenceFlowId, participantId, null);
+    }
+
+    private Boolean evaluateGuardInternal(String processDefinitionId, String sequenceFlowId, String participantId, String executionId) {
         try {
             log.debug("[SequenceFlowGuardEvaluator] Evaluating guard for sequence flow: {}", sequenceFlowId);
 
@@ -141,7 +152,7 @@ public class SequenceFlowGuardEvaluator {
 
             // Evaluate the guard expression
             log.debug("[SequenceFlowGuardEvaluator] Evaluating guard for {}: '{}'", sequenceFlowId, guardExpression);
-            boolean result = evaluateGuardExpression(processDefinitionId, guardExpression, sequenceFlowId, participantId);
+            boolean result = evaluateGuardExpression(processDefinitionId, guardExpression, sequenceFlowId, participantId, executionId);
 
             log.info("[SequenceFlowGuardEvaluator] Guard evaluation for {} ({}): {}",
                     sequenceFlowId, guardExpression, result);
@@ -151,7 +162,7 @@ public class SequenceFlowGuardEvaluator {
         } catch (Exception e) {
             log.error("[SequenceFlowGuardEvaluator] Error evaluating guard for sequence flow {}: {}",
                     sequenceFlowId, e.getMessage(), e);
-            return false; // Fail safe: if error during guard evaluation, don't follow the flow
+            return false; // Fail-safe: if error during guard evaluation, don't follow the flow
         }
     }
 
@@ -168,7 +179,7 @@ public class SequenceFlowGuardEvaluator {
         }
 
         try {
-            return evaluateGuardExpression(processDefinitionId, guardExpression, sourceId, participantId);
+            return evaluateGuardExpression(processDefinitionId, guardExpression, sourceId, participantId, null);
         } catch (Exception e) {
             log.error("[SequenceFlowGuardEvaluator] Error evaluating ad-hoc guard for {}: {}",
                     sourceId, e.getMessage(), e);
@@ -203,9 +214,9 @@ public class SequenceFlowGuardEvaluator {
     }
 
     /**
-     * Evaluate a guard expression like "place1.attribute == value"
+     * Evaluate a guard expression like "place1.attribute == value" or SpEL expressions
      */
-    private boolean evaluateGuardExpression(String processDefinitionId, String guardExpression, String sourceId, String participantId) {
+    private boolean evaluateGuardExpression(String processDefinitionId, String guardExpression, String sourceId, String participantId, String executionId) {
         if (guardExpression == null || guardExpression.isBlank()) {
             return true;
         }
@@ -220,8 +231,19 @@ public class SequenceFlowGuardEvaluator {
             return false;
         }
 
-        Matcher matcher = GUARD_PATTERN.matcher(resolvedExpression.trim());
+        String trimmedExpr = resolvedExpression.trim();
+
+        if (trimmedExpr.contains("#") || trimmedExpr.contains("(") || trimmedExpr.contains(")")) {
+            return evaluateSpelGuard(trimmedExpr, executionId, sourceId);
+        }
+
+        Matcher matcher = GUARD_PATTERN.matcher(trimmedExpr);
         if (!matcher.matches()) {
+            if (executionId != null && !executionId.isBlank()) {
+                log.debug("[SequenceFlowGuardEvaluator] Expression '{}' did not match standard guard pattern. Retrying as SpEL guard.", trimmedExpr);
+                return evaluateSpelGuard(trimmedExpr, executionId, sourceId);
+            }
+
             log.warn("[SequenceFlowGuardEvaluator] Invalid guard format for {}: '{}'", sourceId, resolvedExpression);
             return false;
         }
@@ -233,6 +255,19 @@ public class SequenceFlowGuardEvaluator {
 
         if ("position".equals(attributeKey)) {
             return evaluateParticipantPosition(processDefinitionId, reference, operator, expectedRaw, sourceId);
+        }
+
+        String resolvedParticipantId = participantService.resolveParticipantId(processDefinitionId, reference);
+        Optional<Participant> participantOpt = participantDataService.getParticipant(resolvedParticipantId);
+
+        if (participantOpt.isPresent() && participantOpt.get().getAttributes() != null) {
+            Object actualValue = participantOpt.get().getAttributes().get(attributeKey);
+            if (actualValue != null) {
+                boolean result = compare(actualValue, operator, expectedRaw);
+                log.debug("[SequenceFlowGuardEvaluator] Participant attribute guard evaluation | source={} | participant='{}' | attr='{}' | actual='{}' -> {}",
+                        sourceId, resolvedParticipantId, attributeKey, actualValue, result);
+                return result;
+            }
         }
 
         Optional<String> logicalPlaceId = environmentDataService.resolveLogicalPlaceId(reference);
@@ -259,6 +294,42 @@ public class SequenceFlowGuardEvaluator {
                 sourceId, resolvedExpression, actualValue, result);
 
         return result;
+    }
+
+    private boolean evaluateSpelGuard(String expression, String executionId, String sourceId) {
+        if (executionId == null || executionId.isBlank()) {
+            log.warn("[SequenceFlowGuardEvaluator] Cannot evaluate SpEL guard '{}' for source {}: executionId is null", expression, sourceId);
+            return false;
+        }
+
+        try {
+            StandardEvaluationContext context = new StandardEvaluationContext();
+            context.addPropertyAccessor(new MapAccessor());
+
+            Map<String, Object> variables = runtimeService.getVariables(executionId);
+            context.setRootObject(variables);
+            variables.forEach(context::setVariable);
+
+            String spelExpression = expression;
+            if (spelExpression.contains(".length")) {
+                spelExpression = spelExpression.replace(".length", ".size()");
+            }
+
+            for (String varName : variables.keySet()) {
+                if (!spelExpression.contains("#" + varName) && spelExpression.contains(varName)) {
+                    spelExpression = spelExpression.replaceAll("\\b" + varName + "\\b", "#" + varName);
+                }
+            }
+
+            Boolean result = spelParser.parseExpression(spelExpression).getValue(context, Boolean.class);
+            log.debug("[SequenceFlowGuardEvaluator] SpEL Guard evaluation | source={} | raw='{}' | parsed='{}' -> {}",
+                    sourceId, expression, spelExpression, result);
+            return Boolean.TRUE.equals(result);
+        } catch (Exception e) {
+            log.error("[SequenceFlowGuardEvaluator] Error evaluating SpEL guard '{}' for source {}: {}",
+                    expression, sourceId, e.getMessage(), e);
+            return false;
+        }
     }
 
     private boolean evaluateParticipantPosition(String processDefinitionId,

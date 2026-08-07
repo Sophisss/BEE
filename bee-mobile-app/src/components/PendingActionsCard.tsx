@@ -42,7 +42,8 @@ export const PendingActionsCard: React.FC<PendingActionsCardProps> = ({
                                 <Text style={styles.actionName}>
                                     {act.message || `Execute action: ${act.action || 'unknown'}`}
                                 </Text>
-                                {act.activityId && (
+
+                                {!!act.activityId && (
                                     <Text style={styles.actionMeta}>
                                         Activity ID: {act.activityId}
                                     </Text>

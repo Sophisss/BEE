@@ -4,11 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.unicam.intermediate.models.dto.TourResponse;
 import org.unicam.intermediate.models.dto.websocket.GpsResponse;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
 import org.unicam.intermediate.models.record.EnvironmentalTaskInfo;
+import org.unicam.intermediate.service.ProcessVariableService;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.participant.ParticipantService;
 import org.unicam.intermediate.service.participant.UserParticipantMappingService;
@@ -42,7 +47,11 @@ public class EnvironmentalTaskRegistry {
     private final ParticipantDataService participantDataService;
     private final ParticipantService participantService;
     private final UserParticipantMappingService userParticipantMappingService;
+    private final ProcessVariableService processVariableService;
+    private final ParticipantTourService participantTourService;
     private final WebSocketSessionManager webSocketSessionManager;
+
+    private final ExpressionParser spelParser = new SpelExpressionParser();
 
     // executionId -> active environmental task waiting for guard=true
     private final Map<String, EnvironmentalTaskInfo> activeEnvironmentalTasks = new ConcurrentHashMap<>();
@@ -56,12 +65,16 @@ public class EnvironmentalTaskRegistry {
                                      ParticipantDataService participantDataService,
                                      ParticipantService participantService,
                                      UserParticipantMappingService userParticipantMappingService,
+                                     ProcessVariableService processVariableService,
+                                     ParticipantTourService participantTourService,
                                      WebSocketSessionManager webSocketSessionManager) {
         this.environmentDataService = environmentDataService;
         this.runtimeService = runtimeService;
         this.participantDataService = participantDataService;
         this.participantService = participantService;
         this.userParticipantMappingService = userParticipantMappingService;
+        this.processVariableService = processVariableService;
+        this.participantTourService = participantTourService;
         this.webSocketSessionManager = webSocketSessionManager;
     }
 
@@ -80,9 +93,9 @@ public class EnvironmentalTaskRegistry {
                 activityId,
                 executionId,
                 normalizedGuard.isEmpty() ? "(empty)" : normalizedGuard,
-            normalizedAction.isEmpty() ? "(empty)" : normalizedAction,
-            participantId != null ? participantId : "(empty)",
-            timer != null ? timer : "(empty)");
+                normalizedAction.isEmpty() ? "(empty)" : normalizedAction,
+                participantId != null ? participantId : "(empty)",
+                timer != null ? timer : "(empty)");
     }
 
     public void removeTask(String executionId) {
@@ -117,14 +130,6 @@ public class EnvironmentalTaskRegistry {
         }
     }
 
-    /**
-     * Returns action requests currently pending for the given participant.
-     * A request is considered pending when:
-     * 1) the task belongs to the participant,
-     * 2) an action is configured,
-     * 3) guard is already satisfied,
-     * 4) action condition is still not satisfied.
-     */
     public List<Map<String, String>> getPendingActionsForParticipant(String participantId) {
         if (participantId == null || participantId.isBlank()) {
             return List.of();
@@ -204,6 +209,9 @@ public class EnvironmentalTaskRegistry {
                             String.format("Action '%s' did not become true within timer for activity '%s'",
                                     taskInfo.action(), taskInfo.activityId())
                     );
+                } else {
+                    // Esecuzione atomica delle modifiche/assegnazioni di stato solo al completamento
+                    applyActionAssignments(taskInfo);
                 }
 
                 runtimeService.signal(taskInfo.executionId());
@@ -217,10 +225,10 @@ public class EnvironmentalTaskRegistry {
                             taskInfo.timer());
                 } else {
                     log.info("[EnvironmentalRegistry] Guard+Action satisfied -> task completed | activity={} | execution={} | guard='{}' | action='{}'",
-                        taskInfo.activityId(),
-                        taskInfo.executionId(),
-                        taskInfo.guardExpression(),
-                        taskInfo.action());
+                            taskInfo.activityId(),
+                            taskInfo.executionId(),
+                            taskInfo.guardExpression(),
+                            taskInfo.action());
                 }
             } catch (Exception e) {
                 if (isExecutionNotFoundError(e)) {
@@ -235,6 +243,168 @@ public class EnvironmentalTaskRegistry {
         }
 
         completedTasks.forEach(task -> removeTask(task.executionId(), task.activityId()));
+    }
+
+    private void applyActionAssignments(EnvironmentalTaskInfo taskInfo) {
+        String action = taskInfo.action();
+        if (action == null || action.isBlank()) return;
+
+        String resolvedAction = resolveMyPlace(action, taskInfo.participantId(), taskInfo.activityId());
+
+        String[] statements = resolvedAction.split(";");
+        for (String singleStatement : statements) {
+            String stmt = singleStatement.trim();
+            if (stmt.isEmpty()) continue;
+
+            if (stmt.contains("=") && !stmt.contains("==") && !stmt.contains("!=") && !stmt.contains(">=") && !stmt.contains("<=")) {
+                String[] parts = stmt.split("=", 2);
+                String targetAttr = parts[0].trim();
+                String rawValue = unquote(parts[1].trim());
+
+                if (targetAttr.contains(".")) {
+                    String[] placeAndAttr = targetAttr.split("\\.", 2);
+                    executePlaceAttributeSet(placeAndAttr[0].trim(), placeAndAttr[1].trim(), rawValue, taskInfo.activityId());
+                }
+            } else if (stmt.endsWith("--") || stmt.endsWith("++")) {
+                boolean isDecrement = stmt.endsWith("--");
+                String targetAttr = stmt.substring(0, stmt.length() - 2).trim();
+                if (targetAttr.contains(".")) {
+                    String[] placeAndAttr = targetAttr.split("\\.", 2);
+                    executePlaceCounterUpdate(placeAndAttr[0].trim(), placeAndAttr[1].trim(), isDecrement, taskInfo.activityId());
+                }
+            } else {
+                executeSpelStatement(stmt, taskInfo.executionId(), taskInfo);
+            }
+        }
+    }
+
+    private void executePlaceAttributeSet(String placeRef, String attrKey, String rawValue, String activityId) {
+        Optional<PhysicalPlace> placeOpt = environmentDataService.getPhysicalPlace(placeRef);
+        if (placeOpt.isPresent() && placeOpt.get().getAttributes() != null) {
+            placeOpt.get().getAttributes().put(attrKey, parseValue(rawValue));
+            log.info("[ENVIRONMENTAL] Assignment executed: set attribute | place='{}' | {}={} | activity={}",
+                    placeRef, attrKey, rawValue, activityId);
+        }
+    }
+
+    private void executePlaceCounterUpdate(String placeRef, String attrKey, boolean isDecrement, String activityId) {
+        Optional<PhysicalPlace> placeOpt = environmentDataService.getPhysicalPlace(placeRef);
+        if (placeOpt.isPresent() && placeOpt.get().getAttributes() != null) {
+            Object currentVal = placeOpt.get().getAttributes().get(attrKey);
+            double val = (currentVal instanceof Number) ? ((Number) currentVal).doubleValue() : 0.0;
+            val = isDecrement ? val - 1.0 : val + 1.0;
+            placeOpt.get().getAttributes().put(attrKey, val);
+            log.info("[ENVIRONMENTAL] Assignment executed: updated counter | place='{}' | {}={} | activity={}",
+                    placeRef, attrKey, val, activityId);
+        }
+    }
+
+    /**
+     * Executes a SpEL (Spring Expression Language) assignment statement, handles list manipulation (e.g., remove(0), shift()),
+     * updates Camunda execution and process variables, and triggers tour recalculation for the participant.
+     *
+     * @param stmt        the SpEL statement or list removal instruction to execute
+     * @param executionId the Camunda process execution ID
+     * @param taskInfo    the active environmental task info containing participant context
+     */
+    private void executeSpelStatement(String stmt, String executionId, EnvironmentalTaskInfo taskInfo) {
+        if (!executionExists(executionId)) return;
+
+        Map<String, Object> variables = runtimeService.getVariables(executionId);
+        String spelExpression = stmt.trim();
+        boolean stateChanged = false;
+
+        // 1. DIRECT AND SAFE HANDLING FOR LIST MUTATIONS (SHIFT / REMOVE(0))
+        if (spelExpression.contains(".remove(0)") || spelExpression.contains(".shift()")) {
+            String[] parts = spelExpression.split("\\.");
+            if (parts.length >= 2) {
+                String rootVar = parts[0].replace("#", "").trim();
+                String targetListField = parts[1].replace("()", "").trim();
+
+                Object finalValue = variables.get(rootVar);
+                boolean updated = false;
+
+                if (finalValue instanceof Map<?, ?> map) {
+                    Object listObj = map.get(targetListField);
+                    if (listObj instanceof List<?> list && !list.isEmpty()) {
+                        List<Object> mutableList = new ArrayList<>(list);
+                        mutableList.remove(0);
+                        ((Map<String, Object>) map).put(targetListField, mutableList);
+                        updated = true;
+                    }
+                } else if (finalValue instanceof List<?> list && !list.isEmpty()) {
+                    List<Object> mutableList = new ArrayList<>(list);
+                    mutableList.remove(0);
+                    variables.put(rootVar, mutableList);
+                    updated = true;
+                }
+
+                if (updated) {
+                    runtimeService.setVariable(executionId, rootVar, finalValue);
+                    processVariableService.setVariable(executionId, rootVar, finalValue);
+
+                    log.info("[ENVIRONMENTAL] Successfully removed index 0 from {}.{} and synced DataObject in execution {}",
+                            rootVar, targetListField, executionId);
+
+                    stateChanged = true;
+                }
+            }
+        }
+
+        // 2. STANDARD SPEL PARSING FOR OTHER ASSIGNMENTS AND STATEMENTS
+        if (!stateChanged) {
+            StandardEvaluationContext context = new StandardEvaluationContext();
+            variables.forEach(context::setVariable);
+
+            if (spelExpression.contains(".shift()")) {
+                spelExpression = spelExpression.replace(".shift()", ".remove(0)");
+            }
+            if (spelExpression.contains(".pop()")) {
+                spelExpression = spelExpression.replaceAll("(\\w+)\\.pop\\(\\)", "$1.remove($1.size() - 1)");
+            }
+            if (spelExpression.contains(".length")) {
+                spelExpression = spelExpression.replace(".length", ".size()");
+            }
+
+            for (String varName : variables.keySet()) {
+                if (spelExpression.startsWith(varName + ".")) {
+                    spelExpression = "#" + spelExpression;
+                    break;
+                }
+            }
+
+            spelParser.parseExpression(spelExpression).getValue(context);
+            for (String varName : variables.keySet()) {
+                Object updatedVal = context.lookupVariable(varName);
+                if (updatedVal != null) {
+                    runtimeService.setVariable(executionId, varName, updatedVal);
+                    processVariableService.setVariable(executionId, varName, updatedVal);
+                }
+            }
+        }
+
+        // 3. RECALCULATE AND SYNCHRONIZE PARTICIPANT TOUR UPON STATE UPDATE
+        if (taskInfo != null && taskInfo.participantId() != null) {
+            try {
+                participantDataService.getParticipant(taskInfo.participantId()).ifPresent(participant -> {
+                    TourResponse updatedTour = participantTourService.calculateTour(participant);
+
+                    runtimeService.setVariable(executionId, "targetPlaceIds", updatedTour.getTargetPlaceIds());
+                    runtimeService.setVariable(executionId, "navigationPath", updatedTour.getNavigationPath());
+
+                    try {
+                        processVariableService.setVariable(executionId, "targetPlaceIds", updatedTour.getTargetPlaceIds());
+                        processVariableService.setVariable(executionId, "navigationPath", updatedTour.getNavigationPath());
+                    } catch (Exception ignored) {
+                    }
+
+                    log.info("[ENVIRONMENTAL] Recalculated and synchronized tour for participant '{}' in execution {}. New targets: {}",
+                            participant.getId(), executionId, updatedTour.getTargetPlaceIds());
+                });
+            } catch (Exception e) {
+                log.error("[ENVIRONMENTAL] Failed to recalculate participant tour after SpEL execution: {}", e.getMessage(), e);
+            }
+        }
     }
 
     private boolean executionExists(String executionId) {
@@ -430,8 +600,8 @@ public class EnvironmentalTaskRegistry {
         }
 
         return switch (operator) {
-            case "==" -> actualText.equals(expectedRaw);
-            case "!=" -> !actualText.equals(expectedRaw);
+            case "==" -> actualText.equalsIgnoreCase(expectedRaw);
+            case "!=" -> !actualText.equalsIgnoreCase(expectedRaw);
             default -> false;
         };
     }
@@ -475,29 +645,58 @@ public class EnvironmentalTaskRegistry {
             return true;
         }
 
-        return switch (action.trim().toLowerCase()) {
-            case "turnlightson" -> turnLightsOn(activityId, participantId, executionId, notifyParticipant);
-            case "turnlightsoff" -> turnLightsOff(activityId, participantId, executionId, notifyParticipant);
-            case "cleanroom" -> cleanRoom(activityId, participantId, executionId, notifyParticipant);
-            case "checkroom" -> checkRoom(activityId, participantId, executionId, notifyParticipant);
-            case "checkvehicle" -> checkVehicle(activityId, participantId, executionId, notifyParticipant);
-            case "fixvehicle" -> fixVehicle(activityId, participantId, executionId, notifyParticipant);
-            case "assessalldirty" -> assessAllDirty(activityId, executionId, notifyParticipant);
-            case "startemergency" -> startEmergency(activityId, executionId, notifyParticipant);
-            case "endemergency" -> endEmergency(activityId, executionId, notifyParticipant);
-            case "extinguishfire" -> extinguishFire(activityId, participantId, executionId, notifyParticipant);
-            case "preparearea" -> prepareArea(activityId, participantId, executionId, notifyParticipant);
-            case "plantarea" -> plantArea(activityId, participantId, executionId, notifyParticipant);
-            case "waterarea" -> waterArea(activityId, participantId, executionId, notifyParticipant);
-            case "leaveroom" -> leaveRoom(activityId, participantId, notifyParticipant);
-            case "occupyroom" -> occupyRoom(activityId, participantId, notifyParticipant);
-            case "rentvehicle" -> rentVehicle(activityId, participantId, notifyParticipant);
-            case "leavevehicle" -> leaveVehicle(activityId, participantId, notifyParticipant);
-            default -> {
-                log.warn("[ENVIRONMENTAL] Unknown action '{}' for activity {} -> action-check fails", action, activityId);
-                yield false;
+        String resolvedAction = resolveMyPlace(action, participantId, activityId);
+
+        if (action.contains("myPlace()") && resolvedAction.contains("myPlace()")) {
+            log.debug("[ENVIRONMENTAL] Waiting for participant position to resolve myPlace() for activity {}", activityId);
+            return false;
+        }
+
+        try {
+            String[] statements = resolvedAction.split(";");
+            for (String singleStatement : statements) {
+                String stmt = singleStatement.trim();
+                if (stmt.isEmpty()) continue;
+
+                boolean stmtSuccess = executeSingleActionStatement(stmt, activityId);
+                if (!stmtSuccess) {
+                    return false;
+                }
             }
-        };
+            return true;
+
+        } catch (Exception e) {
+            log.warn("[ENVIRONMENTAL] Dynamic execution failed for action '{}' on activity {}: {}",
+                    action, activityId, e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean executeSingleActionStatement(String stmt, String activityId) {
+        Matcher matcher = GUARD_PATTERN.matcher(stmt);
+        if (matcher.matches()) {
+            String reference = matcher.group(1).trim();
+            String attributeKey = matcher.group(2);
+            String operator = matcher.group(3);
+            String expectedRaw = unquote(matcher.group(4).trim());
+
+            Optional<Object> actualValueOpt = environmentDataService.getPhysicalPlaceAttribute(reference, attributeKey);
+            if (actualValueOpt.isPresent()) {
+                boolean result = compare(actualValueOpt.get(), operator, expectedRaw);
+                log.debug("[ENVIRONMENTAL] Dynamic action check statement | activity={} | stmt='{}' -> {}", activityId, stmt, result);
+                return result;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private Object parseValue(String raw) {
+        if ("true".equalsIgnoreCase(raw)) return Boolean.TRUE;
+        if ("false".equalsIgnoreCase(raw)) return Boolean.FALSE;
+        Double num = toNumber(raw);
+        if (num != null) return num;
+        return raw;
     }
 
     /**
@@ -646,7 +845,7 @@ public class EnvironmentalTaskRegistry {
 
     /**
      * assessAllDirty is a system action with no participant notification.
-     * Execute mode marks state=dirty for place1..place16 and completes immediately.
+     * Execute mode marks state=dirty for place1...place16 and completes immediately.
      */
     private boolean assessAllDirty(String activityId, String executionId, boolean execute) {
         if (!execute) {
@@ -906,7 +1105,7 @@ public class EnvironmentalTaskRegistry {
     /**
      * rentVehicle is a system action.
      * Check-only mode has no side effects and always returns true.
-        * Execute mode sets taken=false and state=null on the participant's current place.
+     * Execute mode sets taken=false and state=null on the participant's current place.
      */
     private boolean rentVehicle(String activityId, String participantId, boolean execute) {
         if (!execute) {

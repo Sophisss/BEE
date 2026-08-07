@@ -124,7 +124,7 @@ public class ProcessVariableController {
             @PathVariable String dataObjectName,
             @RequestBody Object value) {
         try {
-            if (!processVariableService.variableExists(processInstanceId, dataObjectName)) {
+            if (processVariableService.variableExists(processInstanceId, dataObjectName)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Response.error("Data object not found: " + dataObjectName));
             }
@@ -149,7 +149,7 @@ public class ProcessVariableController {
             @RequestParam String path,
             @RequestBody Object value) {
         try {
-            if (!processVariableService.variableExists(processInstanceId, dataObjectName)) {
+            if (processVariableService.variableExists(processInstanceId, dataObjectName)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Response.error("Data object not found: " + dataObjectName));
             }
@@ -172,7 +172,7 @@ public class ProcessVariableController {
             @PathVariable String processInstanceId,
             @PathVariable String dataObjectName) {
         try {
-            if (!processVariableService.variableExists(processInstanceId, dataObjectName)) {
+            if (processVariableService.variableExists(processInstanceId, dataObjectName)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Response.error("Data object not found: " + dataObjectName));
             }

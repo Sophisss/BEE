@@ -164,6 +164,20 @@ export async function updateParticipantAttributesApi(
 }
 
 /**
+ * Completes the active User Task for a participant and dynamically maps its BPMN Data Objects.
+ * Endpoint: POST /api/environment/participants/{id}/configure/complete
+ *
+ * @param {string} participantId - Participant identifier.
+ * @returns {Promise<any>} Server response containing completed task details and updated Data Objects.
+ */
+export async function completeTaskForParticipantApi(participantId: string): Promise<any> {
+    return await apiCall<any>(
+        'POST',
+        `/api/environment/participants/${encodeURIComponent(participantId)}/configure/complete`
+    );
+}
+
+/**
  * Updates the current physical/logical place position of a participant.
  *
  * Endpoint: PUT /api/environment/participants/{id}/position
@@ -281,4 +295,27 @@ export async function updatePlaceAttributeApi(
         `/api/environment/pps/${encodeURIComponent(placeId)}/attributes/${encodeURIComponent(key)}`,
         {value: parsedValue}
     );
+}
+
+/**
+ * Notifies the backend of an environmental change (such as a closed place)
+ * to trigger a path recalculation (re-routing) for a specific participant.
+ *
+ * Endpoint: POST /re-route/environment-change?closedPlaceId={closedPlaceId}
+ *
+ * @param {Participant} participant - The target participant object.
+ * @param {string} closedPlaceId - The ID of the closed or inaccessible place.
+ * @returns {Promise<TourResult>} The newly computed tour result after re-routing.
+ */
+export async function notifyEnvironmentChangeApi(
+    participant: Participant,
+    closedPlaceId: string
+): Promise<TourResult> {
+    const res = await apiCall<TourResult | { data?: TourResult }>(
+        'POST',
+        `/api/environment/re-route/environment-change?closedPlaceId=${encodeURIComponent(closedPlaceId)}`,
+        participant
+    );
+
+    return (res as { data?: TourResult })?.data || (res as TourResult);
 }

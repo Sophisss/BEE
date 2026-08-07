@@ -47,7 +47,7 @@ public class OccupancySyncService {
         schedulePlaceUpdate(newPosition, dueAt);
     }
 
-    @Scheduled(fixedRate = 1000)
+    /*@Scheduled(fixedRate = 1000)*/
     public void processPendingOccupancyUpdates() {
         long now = System.currentTimeMillis();
 

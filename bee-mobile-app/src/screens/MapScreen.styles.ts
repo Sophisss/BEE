@@ -29,6 +29,8 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         marginBottom: 16,
         marginTop: 16,
+        marginVertical: 10,
+        paddingHorizontal: 15,
     },
     participantTab: {
         backgroundColor: '#1E293B',
@@ -326,6 +328,37 @@ export const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'monospace',
         fontWeight: '600',
-        color: '#0f172a',
+        color: '#0f172a'
+    },
+    selectorLabel: {
+        color: '#90CAF9',
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    placePickerScroll: {
+        flexDirection: 'row',
+    },
+    placeChip: {
+        backgroundColor: '#1E293B',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: '#334155',
+    },
+    placeChipSelected: {
+        backgroundColor: '#0284C7',
+        borderColor: '#38BDF8',
+    },
+    placeChipText: {
+        color: '#94A3B8',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    placeChipTextSelected: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
     }
 });

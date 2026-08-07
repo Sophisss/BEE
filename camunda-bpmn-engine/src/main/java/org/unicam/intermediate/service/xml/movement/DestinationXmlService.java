@@ -7,6 +7,9 @@ import org.unicam.intermediate.models.enums.ExtendedElementTaskType;
 import org.unicam.intermediate.models.enums.TaskType;
 import org.unicam.intermediate.service.xml.AbstractXmlService;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.unicam.intermediate.utils.Constants.SPACE_NS;
 
 @Slf4j
@@ -18,7 +21,9 @@ public class DestinationXmlService extends AbstractXmlService {
     }
 
     @Override
-    public TaskType getTypeKey() {return TaskType.MOVEMENT;}
+    public TaskType getTypeKey() {
+        return TaskType.MOVEMENT;
+    }
 
     @Override
     public String getNamespaceUri() {
@@ -32,10 +37,22 @@ public class DestinationXmlService extends AbstractXmlService {
 
     @Override
     public String extractRaw(DelegateExecution execution) {
-        String raw = super.extractRaw(execution);
-        log.debug("[DestinationXmlService] extractRaw on {} → {}",
-                execution.getCurrentActivityId(), raw);
-        return raw;
+        String rawXmlValue = super.extractRaw(execution);
+
+        Object tourSettingsObj = execution.getVariable("Tour_settings");
+        if (tourSettingsObj instanceof Map<?, ?> tourSettings) {
+            Object targetIdsObj = tourSettings.get("targetPlaceIds");
+            if (targetIdsObj instanceof List<?> targetIds && !targetIds.isEmpty()) {
+                String dynamicDestination = targetIds.get(0).toString();
+                log.info("[DestinationXmlService] Dynamically resolved destination from Tour_settings[0] on {} → '{}' (raw XML was '{}')",
+                        execution.getCurrentActivityId(), dynamicDestination, rawXmlValue);
+                return dynamicDestination;
+            }
+        }
+
+        log.debug("[DestinationXmlService] Fallback to raw XML on {} → {}",
+                execution.getCurrentActivityId(), rawXmlValue);
+        return rawXmlValue;
     }
 
     @Override

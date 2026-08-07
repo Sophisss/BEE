@@ -2,15 +2,12 @@ package org.unicam.intermediate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.task.Task;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.unicam.intermediate.models.dto.Response;
 import org.unicam.intermediate.models.pojo.Edge;
 import org.unicam.intermediate.models.pojo.LogicalPlace;
@@ -25,9 +22,9 @@ import org.unicam.intermediate.service.environmental.binding.BindingTaskRegistry
 import org.unicam.intermediate.service.environmental.movement.MovementTaskRegistry;
 import org.unicam.intermediate.service.environmental.unbinding.UnbindingTaskRegistry;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.unicam.intermediate.service.participant.ParticipantService;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/environment")
@@ -43,6 +40,9 @@ public class EnvironmentController {
     private final UnbindingTaskRegistry unbindingTaskRegistry;
     private final ParticipantTourService participantTourService;
     private final SensorDataService sensorDataService;
+    private final TaskService taskService;
+    private final ParticipantService participantService;
+    private final RuntimeService runtimeService;
 
     @GetMapping("/reload")
     public ResponseEntity<Response<String>> reloadEnvironmentGet() {
@@ -164,6 +164,22 @@ public class EnvironmentController {
     public ResponseEntity<Response<List<Participant>>> getParticipants() {
         try {
             List<Participant> participants = participantDataService.getParticipants();
+
+            for (Participant p : participants) {
+                if (p.getAttributes() == null) {
+                    p.setAttributes(new LinkedHashMap<>());
+                }
+
+                Task activeTask = findActiveUserTaskForParticipant(p.getId());
+                if (activeTask != null) {
+                    Map<String, Object> executionVars = runtimeService.getVariables(activeTask.getProcessInstanceId());
+                    Object attrsObj = executionVars.get("attributes");
+                    if (attrsObj instanceof Map<?, ?> camundaAttrs) {
+                        camundaAttrs.forEach((k, v) -> p.getAttributes().putIfAbsent(String.valueOf(k), v));
+                    }
+                }
+            }
+
             return ResponseEntity.ok(Response.ok(participants));
         } catch (Exception e) {
             log.error("[Environment API] Failed to retrieve participants", e);
@@ -211,6 +227,13 @@ public class EnvironmentController {
         }
     }
 
+    /**
+     * Retrieves the calculated path for a specific participant.
+     *
+     * @param id The ID of the participant for whom to retrieve the tour.
+     * @return A ResponseEntity containing the path information or an error message if the participant is not found
+     * or if an error occurs during calculation.
+     */
     @GetMapping("/participants/{id}/tour")
     public ResponseEntity<Response<TourResponse>> getParticipantTour(@PathVariable String id) {
         try {
@@ -220,12 +243,89 @@ public class EnvironmentController {
                         .body(Response.error("Participant not found: " + id));
             }
 
-            TourResponse tour = participantTourService.calculateTour(participant.get());
+            TourResponse tour = participantTourService.resolveTourForParticipant(participant.get());
             return ResponseEntity.ok(Response.ok(tour));
         } catch (Exception e) {
             log.error("[Environment API] Failed to calculate tour for participant: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Response.error("Failed to calculate tour: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint for notification of closed places or environmental events.
+     */
+    @PostMapping("/re-route/environment-change")
+    public ResponseEntity<TourResponse> handleEnvironmentChange(
+            @RequestBody Participant participant,
+            @RequestParam String closedPlaceId) {
+
+        TourResponse newTour = participantTourService.handleEnvironmentalChange(participant, closedPlaceId);
+        return ResponseEntity.ok(newTour);
+    }
+
+    /**
+     * Completes the active User Task for a participant, merging local attributes with Camunda process variables.
+     *
+     * @param id The ID of the participant for whom to complete the task.
+     * @return A ResponseEntity containing the result of the operation or an error message if the participant is not found or if an error occurs.
+     */
+    @PostMapping("/participants/{id}/configure/complete")
+    public ResponseEntity<Response<Map<String, Object>>> completeConfigureTask(@PathVariable String id) {
+        try {
+            Optional<Participant> participantOpt = participantDataService.getParticipant(id);
+            if (participantOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Response.error("Participant not found: " + id));
+            }
+
+            Participant participant = participantOpt.get();
+
+            // 1. Search for active User Task assigned to the participant
+            Task task = findActiveUserTaskForParticipant(id);
+
+            if (task == null) {
+                log.warn("[TaskComplete] No active task found for participant '{}'", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Response.error("No active User Task found for participant: " + id));
+            }
+
+            String processInstanceId = task.getProcessInstanceId();
+
+            // 2. Prepare variables by combining local participant POJO attributes and current Camunda process variables
+            Map<String, Object> taskVariables = new LinkedHashMap<>();
+
+            // Read existing attributes stored in the Camunda instance
+            Object existingCamundaAttrs = runtimeService.getVariable(processInstanceId, "attributes");
+            if (existingCamundaAttrs instanceof Map<?, ?> camundaMap) {
+                camundaMap.forEach((k, v) -> taskVariables.put(String.valueOf(k), v));
+            }
+
+            // Override/merge with the participant's updated local attributes
+            if (participant.getAttributes() != null) {
+                taskVariables.putAll(participant.getAttributes());
+            }
+
+            taskVariables.put("attributes", new LinkedHashMap<>(taskVariables));
+            taskVariables.put("participantId", id);
+
+            // 3. Set process variables and complete the User Task
+            runtimeService.setVariables(processInstanceId, taskVariables);
+            taskService.complete(task.getId(), taskVariables);
+
+            log.info("[TaskComplete] Task '{}' completed for participant {}", task.getId(), id);
+
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("completed", true);
+            payload.put("participantId", id);
+            payload.put("taskId", task.getId());
+
+            return ResponseEntity.ok(Response.ok(payload));
+
+        } catch (Exception e) {
+            log.error("[TaskComplete] Failed to complete task for participant: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Response.error("Failed to complete task: " + e.getMessage()));
         }
     }
 
@@ -295,6 +395,13 @@ public class EnvironmentController {
         }
     }
 
+    /**
+     * Updates a participant's attributes and synchronizes them with the Camunda process variables.
+     *
+     * @param id            The ID of the participant whose attributes to update.
+     * @param newAttributes A map containing the new attribute values.
+     * @return A ResponseEntity containing the updated participant or an error message.
+     */
     @PutMapping("/participants/{id}/attributes")
     public ResponseEntity<Response<Participant>> updateParticipantAttributes(
             @PathVariable String id,
@@ -312,10 +419,23 @@ public class EnvironmentController {
                         .body(Response.error("Request body must not be empty"));
             }
 
-            Participant participant = participantOpt.get();
+            // 1. Update in the local data service
             participantDataService.updateParticipantAttributes(id, newAttributes);
 
-            return ResponseEntity.ok(Response.ok(participant));
+            Participant updatedParticipant = participantDataService.getParticipant(id)
+                    .orElse(participantOpt.get());
+
+            // 2. Synchronize attributes within the Camunda ProcessInstance (flatten and update "attributes" map)
+            Task activeTask = findActiveUserTaskForParticipant(id);
+            if (activeTask != null) {
+                String processInstanceId = activeTask.getProcessInstanceId();
+                runtimeService.setVariable(processInstanceId, "attributes", updatedParticipant.getAttributes());
+                runtimeService.setVariables(processInstanceId, updatedParticipant.getAttributes());
+                log.info("[Environment API] Synchronized updated attributes for participant '{}' to Camunda ProcessInstance {}",
+                        id, processInstanceId);
+            }
+
+            return ResponseEntity.ok(Response.ok(updatedParticipant));
         } catch (Exception e) {
             log.error("[Environment API] Failed to update attributes for participant: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -351,5 +471,49 @@ public class EnvironmentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Response.error("Failed to update light sensor: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Private helper method to securely and exhaustively locate the active User Task for a given participant.
+     *
+     * @param participantId The ID of the participant for whom to find the active User Task.
+     * @return The active Task if found, or null if no active task exists for the participant.
+     */
+    private Task findActiveUserTaskForParticipant(String participantId) {
+        // 1. Search by process instance business key
+        Task task = taskService.createTaskQuery()
+                .processInstanceBusinessKey(participantId)
+                .active()
+                .singleResult();
+
+        // 2. Fallback: Search by task assignee
+        if (task == null) {
+            task = taskService.createTaskQuery()
+                    .taskAssignee(participantId)
+                    .active()
+                    .singleResult();
+        }
+
+        // 3. Fallback: Search by process variable "participantId"
+        if (task == null) {
+            List<Task> tasksWithVar = taskService.createTaskQuery()
+                    .processVariableValueEquals("participantId", participantId)
+                    .active()
+                    .list();
+            if (!tasksWithVar.isEmpty()) {
+                task = tasksWithVar.get(0);
+            }
+        }
+
+        // 4. Fallback: Resolution via ParticipantService
+        if (task == null) {
+            List<Task> activeTasks = taskService.createTaskQuery().active().list();
+            task = activeTasks.stream()
+                    .filter(t -> participantId.equals(participantService.resolveParticipantForTask(t)))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        return task;
     }
 }

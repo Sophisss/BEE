@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
+import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.model.bpmn.instance.DataInputAssociation;
 import org.camunda.bpm.model.bpmn.instance.ExtensionElements;
+import org.camunda.bpm.model.bpmn.instance.ItemAwareElement;
 import org.camunda.bpm.model.bpmn.instance.Task;
 import org.camunda.bpm.model.xml.instance.DomElement;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
@@ -19,6 +22,9 @@ import org.unicam.intermediate.service.participant.UserParticipantMappingService
 import org.unicam.intermediate.service.xml.AbstractXmlService;
 import org.unicam.intermediate.service.xml.XmlServiceDispatcher;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,49 +72,52 @@ public class MovementExecutionListener implements ExecutionListener {
 
     private void handleMovementStart(DelegateExecution execution) {
         AbstractXmlService svc = dispatcher.get(SPACE_NS.getNamespaceUri(), TaskType.MOVEMENT);
-        String raw = svc.extractRaw(execution);
-        String value = raw != null && raw.startsWith("${") && raw.endsWith("}")
-                ? String.valueOf(execution.getVariable(raw.substring(2, raw.length()-1).trim()))
-                : raw;
+        String raw = extractDestinationFromDataObject(execution);
+        if (raw == null || raw.isBlank()) {
+            raw = svc.extractRaw(execution);
+        }
+
+        String value = evaluateExpression(raw, execution);
         String destination = resolveDestinationValue(value, execution);
+
+        String finalDestination = (destination != null && !destination.isBlank()) ? destination : value;
         Double timerValue = extractTimerValue(execution);
 
         Participant participant = participantService.resolveCurrentParticipant(execution);
-        boolean destinationIsPhysicalPlace = destination != null && environmentDataService.getPhysicalPlace(destination).isPresent();
-        boolean destinationIsLogicalPlace = destination != null && environmentDataService.resolveLogicalPlaceId(destination).isPresent();
 
-        if (participant != null && destinationIsLogicalPlace) {
-            List<String> matchingPhysicalPlaces = movementTaskRegistry
-                .resolveMatchingPhysicalPlaceIdsForLogicalDestination(destination);
+        if (finalDestination != null) {
+            boolean destinationIsPhysicalPlace = environmentDataService.getPhysicalPlace(finalDestination).isPresent();
+            boolean destinationIsLogicalPlace = environmentDataService.resolveLogicalPlaceId(finalDestination).isPresent();
 
-            if (matchingPhysicalPlaces.isEmpty()) {
-            throw new BpmnError(
-                "unreachableDestination",
-                String.format("Logical destination '%s' has no matching physical places for participant '%s'",
-                    destination, participant.getId())
-            );
-            }
-        }
+            if (participant != null && destinationIsLogicalPlace) {
+                List<String> matchingPhysicalPlaces = movementTaskRegistry
+                        .resolveMatchingPhysicalPlaceIdsForLogicalDestination(finalDestination);
 
-        if (participant != null && destinationIsPhysicalPlace) {
-            String participantId = participant.getId();
-            participantDataService.getParticipant(participantId).ifPresent(current -> {
-                String currentPosition = current.getPosition();
-                boolean reachable = environmentDataService.existsPathBetweenPhysicalPlaces(currentPosition, destination);
-                if (!reachable) {
-                    throw new BpmnError(
-                            "unreachableDestination",
-                            String.format("No path found from '%s' to '%s' for participant '%s'",
-                                    currentPosition, destination, participantId)
-                    );
+                if (matchingPhysicalPlaces.isEmpty()) {
+                    log.warn("[MOVEMENT] Logical destination '{}' has no matching physical places for participant '{}'",
+                            finalDestination, participant.getId());
                 }
-            });
-        }
+            }
 
-        svc.patchInstanceValue(execution, destination);
-        var activityId = execution.getCurrentActivityId();
-        String varKey = activityId + "." + svc.getLocalName();
-        execution.setVariable(varKey, destination);
+            if (participant != null && destinationIsPhysicalPlace) {
+                String participantId = participant.getId();
+                participantDataService.getParticipant(participantId).ifPresent(current -> {
+                    String currentPosition = current.getPosition();
+                    if (currentPosition != null && !currentPosition.isBlank()) {
+                        boolean reachable = environmentDataService.existsPathBetweenPhysicalPlaces(currentPosition, finalDestination);
+                        if (!reachable) {
+                            log.warn("[MOVEMENT] No path found from '{}' to '{}' for participant '{}'",
+                                    currentPosition, finalDestination, participantId);
+                        }
+                    }
+                });
+            }
+
+            svc.patchInstanceValue(execution, finalDestination);
+            var activityId = execution.getCurrentActivityId();
+            String varKey = activityId + "." + svc.getLocalName();
+            execution.setVariable(varKey, finalDestination);
+        }
 
         String businessKey = execution.getBusinessKey();
 
@@ -126,12 +135,12 @@ public class MovementExecutionListener implements ExecutionListener {
         }
 
         String activityName = execution.getCurrentActivityName();
-        
+
         log.info("[MOVEMENT] WAITING | Activity: {} - {} | Participant: {} | Destination: {} | Timer: {}",
                 execution.getCurrentActivityId(),
                 activityName != null ? activityName : "(unnamed)",
-                participant.toString(),
-                destination != null ? destination : "unknown location",
+                participant != null ? participant.getId() : "(none)",
+                finalDestination != null ? finalDestination : "unknown location",
                 timerValue != null ? timerValue : "(empty)");
 
         // Registra il task nel registry per il controllo periodico
@@ -140,7 +149,7 @@ public class MovementExecutionListener implements ExecutionListener {
                     participant.getId(),
                     execution.getId(),
                     execution.getCurrentActivityId(),
-                    destination,
+                    finalDestination,
                     timerValue
             );
         }
@@ -170,6 +179,103 @@ public class MovementExecutionListener implements ExecutionListener {
                     bpmnErrorMessage != null ? bpmnErrorMessage : "Movement task failed"
             );
         }
+    }
+
+    private String extractDestinationFromDataObject(DelegateExecution execution) {
+        ModelElementInstance modelElement = execution.getBpmnModelElementInstance();
+        if (!(modelElement instanceof Task task)) {
+            return null;
+        }
+
+        Collection<DataInputAssociation> inputAssociations = task.getDataInputAssociations();
+        if (inputAssociations != null && !inputAssociations.isEmpty()) {
+            for (DataInputAssociation assoc : inputAssociations) {
+                if (assoc.getSources() == null) continue;
+                for (ItemAwareElement source : assoc.getSources()) {
+                    String name = source.getAttributeValue("name");
+                    if (name != null && name.trim().startsWith("${") && name.trim().endsWith("}")) {
+                        return name.trim();
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String evaluateExpression(String raw, DelegateExecution execution) {
+        if (raw == null || raw.isBlank()) {
+            return raw;
+        }
+
+        String trimmed = raw.trim();
+        if (!trimmed.startsWith("${") || !trimmed.endsWith("}")) {
+            return trimmed;
+        }
+
+        String exprStr = trimmed.substring(2, trimmed.length() - 1).trim();
+
+        try {
+            var processEngineConfig = Context.getProcessEngineConfiguration();
+            if (processEngineConfig != null) {
+                Object evaluated = processEngineConfig
+                        .getExpressionManager()
+                        .createExpression(trimmed)
+                        .getValue(execution);
+
+                if (evaluated != null) {
+                    return String.valueOf(evaluated);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("[MOVEMENT] Camunda native expression evaluation deferred for '{}': {}", trimmed, e.getMessage());
+        }
+
+        if (exprStr.contains(".")) {
+            String[] parts = exprStr.split("\\.", 2);
+            String rootVarName = parts[0];
+            String path = parts[1];
+
+            Object rootObj = execution.getVariable(rootVarName);
+            if (rootObj != null) {
+                Object resolvedObj = resolveNestedProperty(rootObj, path);
+                if (resolvedObj != null) {
+                    return String.valueOf(resolvedObj);
+                }
+            }
+        } else {
+            Object directVar = execution.getVariable(exprStr);
+            if (directVar != null) {
+                return String.valueOf(directVar);
+            }
+        }
+
+        return trimmed;
+    }
+
+    private Object resolveNestedProperty(Object root, String path) {
+        try {
+            if (path.contains("[") && path.endsWith("]")) {
+                String propName = path.substring(0, path.indexOf("["));
+                int index = Integer.parseInt(path.substring(path.indexOf("[") + 1, path.length() - 1));
+
+                Object listObj = root;
+                if (!propName.isBlank()) {
+                    Field field = root.getClass().getDeclaredField(propName);
+                    field.setAccessible(true);
+                    listObj = field.get(root);
+                }
+
+                if (listObj instanceof List<?> list && index < list.size()) {
+                    return list.get(index);
+                } else if (listObj != null && listObj.getClass().isArray()) {
+                    return Array.get(listObj, index);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[MOVEMENT] Unable to parse path '{}' on object: {}", path, root.getClass().getSimpleName());
+        }
+        return null;
     }
 
     private Double extractTimerValue(DelegateExecution execution) {

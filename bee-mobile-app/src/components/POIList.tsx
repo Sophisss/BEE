@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Place } from '../types/environment';
 import { TourResult } from '../services/navigationService';
@@ -9,21 +9,39 @@ interface POIListProps {
 }
 
 export const POIList: React.FC<POIListProps> = ({ tourResult, places }) => {
-    const { targetPlaceIds, navigationPath } = tourResult;
+    // Extract targetPlaceIds and handle fallback properties for calculated path (navigationPath or path)
+    const { targetPlaceIds = [], navigationPath } = tourResult || {};
+    const currentPath: string[] = navigationPath || (tourResult as any)?.path || [];
 
-    // Filter target places for top badges
-    const targetPlaces = places.filter((p) => targetPlaceIds.includes(p.id));
+// Filter and sort target places based on their order in currentPath
+    const remainingTargetPlaces = useMemo(() => {
+        if (!currentPath.length) return [];
 
-    // Keep track of visited targets to distinguish real POI visits from transits
+        // Create a map to quickly look up the first index of each place in the current path
+        const pathOrderMap = new Map<string, number>();
+        currentPath.forEach((id, index) => {
+            if (!pathOrderMap.has(id)) {
+                pathOrderMap.set(id, index);
+            }
+        });
+
+        // Filter places that are both in targetPlaceIds and in currentPath, then sort by path order
+        return places
+            .filter((p) => targetPlaceIds.includes(p.id) && pathOrderMap.has(p.id))
+            .sort((a, b) => (pathOrderMap.get(a.id) ?? Infinity) - (pathOrderMap.get(b.id) ?? Infinity));
+    }, [places, targetPlaceIds, currentPath]);
+
+    const targetSet = useMemo(() => new Set(targetPlaceIds), [targetPlaceIds]);
     const visitedTargets = new Set<string>();
 
     return (
         <View style={styles.container}>
-            {/* 1. POINTS OF INTEREST BADGES */}
-            <Text style={styles.title}>📍 Points of Interest Found ({targetPlaces.length})</Text>
+            <Text style={styles.title}>
+                📍 Points of Interest Found ({remainingTargetPlaces.length})
+            </Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.badgeContainer}>
-                {targetPlaces.map((place) => (
+                {remainingTargetPlaces.map((place) => (
                     <View key={place.id} style={styles.badge}>
                         <Text style={styles.badgeText}>★ {place.name || place.id}</Text>
                     </View>
@@ -33,11 +51,12 @@ export const POIList: React.FC<POIListProps> = ({ tourResult, places }) => {
             {/* 2. FULL PHYSICAL ITINERARY (TURN-BY-TURN) */}
             <Text style={styles.subtitle}>Calculated Path</Text>
             <ScrollView style={{ maxHeight: 220 }}>
-                {navigationPath.map((placeId, index) => {
+                {currentPath.map((placeId, index) => {
                     const place = places.find((p) => p.id === placeId);
                     const isStart = index === 0;
-                    const isTarget = targetPlaceIds.includes(placeId);
-                    const isFirstTimeTarget = isTarget && !isStart && !visitedTargets.has(placeId);
+
+                    const isTarget = targetSet.has(placeId);
+                    const isFirstTimeTarget = isTarget && !visitedTargets.has(placeId);
 
                     if (isTarget) {
                         visitedTargets.add(placeId);
@@ -48,7 +67,7 @@ export const POIList: React.FC<POIListProps> = ({ tourResult, places }) => {
                             <View style={[
                                 styles.stepBadge,
                                 isFirstTimeTarget && styles.targetBadge,
-                                isStart && styles.startBadge
+                                isStart && !isTarget && styles.startBadge
                             ]}>
                                 <Text style={styles.stepNumber}>{index + 1}</Text>
                             </View>
@@ -57,10 +76,10 @@ export const POIList: React.FC<POIListProps> = ({ tourResult, places }) => {
                                     {place?.name || placeId}
                                 </Text>
                                 <Text style={styles.roleText}>
-                                    {isStart
-                                        ? 'Start / Origin'
-                                        : isFirstTimeTarget
-                                            ? 'POI Destination'
+                                    {isFirstTimeTarget
+                                        ? (isStart ? 'Start & POI Destination' : 'POI Destination')
+                                        : isStart
+                                            ? 'Start / Origin'
                                             : 'Transit / Waypoint'}
                                 </Text>
                             </View>

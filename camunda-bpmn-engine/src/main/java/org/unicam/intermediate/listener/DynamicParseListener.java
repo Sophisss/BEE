@@ -38,8 +38,26 @@ public class DynamicParseListener extends AbstractBpmnParseListener {
 
     @Override
     public void parseProcess(Element processElement, ProcessDefinitionEntity processDefinition) {
-        // Message flow registration will be done post-deployment
-        log.debug("[DynamicParseListener] Process parsed: {}", processDefinition.getId());
+        try {
+            ExecutionListener listener = createDelegateExpressionListener(genericTaskExecutionListenerBeanName);
+            if (listener != null) {
+                processDefinition.addListener(ExecutionListener.EVENTNAME_START, listener);
+                log.info("[DynamicParseListener] Attached generic execution listener to the START of process '{}'", processDefinition.getId());
+            }
+        } catch (Exception e) {
+            log.error("[DynamicParseListener] Failed to attach generic listener to the start of process '{}': {}",
+                    processDefinition.getId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Ensures early initialization on BPMN Start Events.
+     */
+    @Override
+    public void parseStartEvent(Element startEventElement, ScopeImpl scope, ActivityImpl activity) {
+        addDiscordanceCheckListener(activity);
+        addGenericTaskListener(activity);
+        log.info("[DynamicParseListener] Configured start event '{}' with generic listener for early attribute initialization", activity.getId());
     }
 
     @Override
@@ -102,22 +120,33 @@ public class DynamicParseListener extends AbstractBpmnParseListener {
             // Set wait state behavior for all dynamic task types
             activity.setActivityBehavior(new WaitStateActivity());
 
-            // Create expression-based listener
-            ExpressionManager exprMgr = Context.getProcessEngineConfiguration().getExpressionManager();
-            String exprString = "${" + listenerBeanName + "}";
-            var expression = exprMgr.createExpression(exprString);
+            // Attach domain-specific execution listener for START and END events
+            ExecutionListener domainListener = createDelegateExpressionListener(listenerBeanName);
+            if (domainListener != null) {
+                activity.addListener(ExecutionListener.EVENTNAME_START, domainListener);
+                activity.addListener(ExecutionListener.EVENTNAME_END, domainListener);
+            }
 
-            ExecutionListener listener = new DelegateExpressionExecutionListener(expression, Collections.emptyList());
-            activity.addListener(ExecutionListener.EVENTNAME_START, listener);
-            activity.addListener(ExecutionListener.EVENTNAME_END, listener);
+            // Attach generic task listener for Data Objects and Attribute management
+            addGenericTaskListener(activity);
 
-            log.info("[DynamicParseListener] Configured activity '{}' with type '{}' -> listener ${{{}}}",
-                    activity.getId(), typeValue, listenerBeanName);
+            log.info("[DynamicParseListener] Configured activity '{}' with type '{}' and generic listener",
+                    activity.getId(), typeValue);
 
         } catch (Exception e) {
             log.error("[DynamicParseListener] Failed to configure task type '{}' for activity '{}': {}",
                     typeValue, activity.getId(), e.getMessage(), e);
         }
+    }
+
+    /**
+     * Configures BPMN User Tasks with discordance checks and generic listeners.
+     */
+    @Override
+    public void parseUserTask(Element userTaskElement, ScopeImpl scope, ActivityImpl activity) {
+        addDiscordanceCheckListener(activity);
+        addGenericTaskListener(activity);
+        log.info("[DynamicParseListener] Configured user task '{}' with generic listener", activity.getId());
     }
 
     @Override
@@ -238,5 +267,44 @@ public class DynamicParseListener extends AbstractBpmnParseListener {
             log.error("[DynamicParseListener] Failed to add message throw listener to event '{}': {}",
                     activity.getId(), e.getMessage(), e);
         }
+    }
+
+    /**
+     * Adds the generic task listener to an activity for both START and END events.
+     */
+    private void addGenericTaskListener(ActivityImpl activity) {
+        try {
+            ExecutionListener listener = createDelegateExpressionListener(genericTaskExecutionListenerBeanName);
+            if (listener != null) {
+                activity.addListener(ExecutionListener.EVENTNAME_START, listener);
+                activity.addListener(ExecutionListener.EVENTNAME_END, listener);
+            }
+        } catch (Exception e) {
+            log.error("[DynamicParseListener] Failed to add generic listener to activity '{}': {}",
+                    activity.getId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Helper method to dynamically construct a {@link DelegateExpressionExecutionListener} instance.
+     */
+    private ExecutionListener createDelegateExpressionListener(String beanName) {
+        if (beanName == null || beanName.isBlank()) {
+            return null;
+        }
+
+        if (Context.getProcessEngineConfiguration() == null) {
+            log.warn("[DynamicParseListener] ProcessEngineConfiguration is null when resolving bean '{}'", beanName);
+            return null;
+        }
+
+        ExpressionManager exprMgr = Context.getProcessEngineConfiguration().getExpressionManager();
+        if (exprMgr == null) {
+            log.warn("[DynamicParseListener] ExpressionManager is null when resolving bean '{}'", beanName);
+            return null;
+        }
+
+        var expression = exprMgr.createExpression("${" + beanName + "}");
+        return new DelegateExpressionExecutionListener(expression, Collections.emptyList());
     }
 }
