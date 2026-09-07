@@ -43,10 +43,7 @@ public class DestinationXmlService extends AbstractXmlService {
         if (tourSettingsObj instanceof Map<?, ?> tourSettings) {
             Object targetIdsObj = tourSettings.get("targetPlaceIds");
             if (targetIdsObj instanceof List<?> targetIds && !targetIds.isEmpty()) {
-                String dynamicDestination = targetIds.get(0).toString();
-                log.info("[DestinationXmlService] Dynamically resolved destination from Tour_settings[0] on {} → '{}' (raw XML was '{}')",
-                        execution.getCurrentActivityId(), dynamicDestination, rawXmlValue);
-                return dynamicDestination;
+                return targetIds.get(0).toString();
             }
         }
 

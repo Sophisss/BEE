@@ -143,8 +143,27 @@ public class MovementExecutionListener implements ExecutionListener {
                 finalDestination != null ? finalDestination : "unknown location",
                 timerValue != null ? timerValue : "(empty)");
 
+        if (participant != null && finalDestination != null && !finalDestination.startsWith("${")) {
+            String currentPosition = participantDataService.getParticipant(participant.getId())
+                    .map(org.unicam.intermediate.models.pojo.Participant::getPosition)
+                    .orElse(null);
+
+            if (currentPosition != null && !currentPosition.isBlank()) {
+                movementTaskRegistry.registerTask(
+                        participant.getId(),
+                        execution.getId(),
+                        execution.getCurrentActivityId(),
+                        finalDestination,
+                        timerValue
+                );
+            } else {
+                log.info("[MOVEMENT] Participant {} has no position set yet. Registration deferred to tour calculation.",
+                        participant.getId());
+            }
+        }
+
         // Registra il task nel registry per il controllo periodico
-        if (participant != null && destination != null) {
+       /* if (participant != null && destination != null) {
             movementTaskRegistry.registerTask(
                     participant.getId(),
                     execution.getId(),
@@ -152,7 +171,7 @@ public class MovementExecutionListener implements ExecutionListener {
                     finalDestination,
                     timerValue
             );
-        }
+        }*/
     }
 
     private void handleMovementEnd(DelegateExecution execution) {

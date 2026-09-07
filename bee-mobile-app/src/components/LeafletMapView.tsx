@@ -164,17 +164,48 @@ const generateLeafletHTML = (
         .filter(Boolean);
 
     // 6. Participants Offsetting
+/*    const filteredParticipants = participants.filter((p) => {
+        const directType = (p as any).type?.toLowerCase() || '';
+
+        const extProperties = (p as any).extensionProperties || (p as any).extensionElements || (p as any).attributes || {};
+        const extType = String(extProperties.type || extProperties.Type || '').toLowerCase();
+
+        const isSensorOrActuator =
+            directType === 'sensor' || directType === 'actuator' ||
+            extType === 'sensor' || extType === 'actuator'
+
+        return !isSensorOrActuator;
+    });*/
+
+    const isDeviceParticipant = (p: Participant) => {
+        const type = String((p as any).type || '').toLowerCase();
+        const name = String(p.name || '').toLowerCase();
+
+        const extProps = (p as any).extensionProperties || (p as any).extensionElements || (p as any).attributes || {};
+        const extType = String(extProps.type || extProps.Type || '').toLowerCase();
+
+        return (
+            type === 'sensor' || type === 'actuator' ||
+            extType === 'sensor' || extType === 'actuator'
+        );
+    };
+
+    const validHumanParticipants = participants.filter((p) => {
+        if (isDeviceParticipant(p)) return false;
+
+        if (!p.currentPlaceId || p.currentPlaceId === 'Unknown') return false;
+        return placeCentersById.has(p.currentPlaceId);
+    });
+
     const placeOccupantsCount: Record<string, number> = {};
     const placeOccupantsIndex: Record<string, number> = {};
 
-    participants.forEach((p) => {
-        if (!p.currentPlaceId || p.currentPlaceId === 'Unknown') return;
+    validHumanParticipants.forEach((p) => {
         placeOccupantsCount[p.currentPlaceId] = (placeOccupantsCount[p.currentPlaceId] || 0) + 1;
     });
 
-    const participantsData = participants
+    const participantsData = validHumanParticipants
         .map((p) => {
-            if (!p.currentPlaceId || p.currentPlaceId === 'Unknown') return null;
             const center = placeCentersById.get(p.currentPlaceId);
             if (!center) return null;
 

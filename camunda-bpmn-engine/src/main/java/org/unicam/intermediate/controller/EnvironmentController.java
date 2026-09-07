@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -142,7 +143,7 @@ public class EnvironmentController {
 
     @PutMapping("/pps/{id}/attributes/{key}")
     public ResponseEntity<Response<Object>> setAttributeByKey(@PathVariable String id, @PathVariable String key,
-                                                               @RequestBody Map<String, Object> requestBody) {
+                                                              @RequestBody Map<String, Object> requestBody) {
         try {
             Optional<PhysicalPlace> place = environmentDataService.getPhysicalPlace(id);
             if (place.isEmpty()) {
@@ -206,24 +207,74 @@ public class EnvironmentController {
     }
 
     @GetMapping("/participants/{id}/actions/pending")
-    public ResponseEntity<Response<List<Map<String, String>>>> getPendingParticipantActions(@PathVariable String id) {
+    public ResponseEntity<Response<List<Map<String, String>>>> getPendingParticipantActions(
+            @PathVariable String id) {
+
         try {
-            Optional<Participant> participant = participantDataService.getParticipant(id);
-            if (participant.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Response.error("Participant not found: " + id));
+            Optional<Participant> participantOpt = participantDataService.getParticipant(id);
+
+            if (participantOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Response.error("Participant not found: " + id));
             }
 
-            List<Map<String, String>> pendingActions = new java.util.ArrayList<>();
-            pendingActions.addAll(environmentalTaskRegistry.getPendingActionsForParticipant(id));
-            pendingActions.addAll(movementTaskRegistry.getPendingMovementsForParticipant(id));
-            pendingActions.addAll(bindingTaskRegistry.getPendingBindingsForParticipant(id));
-            pendingActions.addAll(unbindingTaskRegistry.getPendingUnbindingsForParticipant(id));
+            Participant participant = participantOpt.get();
+
+            if (participant.getPosition() == null || participant.getPosition().isBlank()) {
+                return ResponseEntity.ok(Response.ok(List.of()));
+            }
+
+            Set<String> targetParticipantIds = new LinkedHashSet<>();
+            targetParticipantIds.add(id);
+
+            Task activeTask = findActiveUserTaskForParticipant(id);
+
+            if (activeTask != null) {
+                String resolvedId = participantService.resolveParticipantForTask(activeTask);
+                if (resolvedId != null && !resolvedId.isBlank()) {
+                    targetParticipantIds.add(resolvedId);
+                }
+            }
+
+            List<Map<String, String>> pendingActions = new ArrayList<>();
+
+            for (String candidateId : targetParticipantIds) {
+                pendingActions.addAll(environmentalTaskRegistry.getPendingActionsForParticipant(candidateId));
+                pendingActions.addAll(bindingTaskRegistry.getPendingBindingsForParticipant(candidateId));
+                pendingActions.addAll(unbindingTaskRegistry.getPendingUnbindingsForParticipant(candidateId));
+            }
+
+            for (String candidateId : targetParticipantIds) {
+                List<Map<String, String>> movements = movementTaskRegistry.getPendingMovementsForParticipant(candidateId);
+
+                for (Map<String, String> movement : movements) {
+                    Map<String, String> updatedMovement = new HashMap<>(movement);
+
+                    String destinationId = updatedMovement.get("destination");
+
+                    if (destinationId != null && !destinationId.isBlank()) {
+                        Optional<PhysicalPlace> realPlaceOpt = environmentDataService.getPhysicalPlace(destinationId);
+
+                        String displayName = realPlaceOpt
+                                .map(PhysicalPlace::getName)
+                                .orElse(destinationId);
+
+                        String messageText = "Move to " + displayName;
+                        updatedMovement.put("destination", destinationId);
+                        updatedMovement.put("targetPlaceId", destinationId);
+                        updatedMovement.put("message", messageText);
+                        updatedMovement.put("description", messageText);
+                    }
+
+                    pendingActions.add(updatedMovement);
+                }
+            }
+
             return ResponseEntity.ok(Response.ok(pendingActions));
         } catch (Exception e) {
             log.error("[Environment API] Failed to retrieve pending actions for participant: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Response.error("Failed to retrieve pending actions: " + e.getMessage()));
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Response.error("Failed to retrieve pending actions: "
+                    + e.getMessage()));
         }
     }
 
@@ -243,7 +294,67 @@ public class EnvironmentController {
                         .body(Response.error("Participant not found: " + id));
             }
 
-            TourResponse tour = participantTourService.resolveTourForParticipant(participant.get());
+            Participant p = participant.get();
+
+            // 1. Identify the active Process Instance associated with the current participant
+            Task activeTask = findActiveUserTaskForParticipant(id);
+            String processInstanceId = activeTask != null ? activeTask.getProcessInstanceId() : null;
+
+            if (processInstanceId == null) {
+                processInstanceId = runtimeService.createProcessInstanceQuery()
+                        .active()
+                        .variableValueEquals("participantId", id)
+                        .list()
+                        .stream()
+                        .findFirst()
+                        .map(ProcessInstance::getProcessInstanceId)
+                        .orElse(null);
+            }
+
+            TourResponse tour;
+            if (processInstanceId != null) {
+                tour = participantTourService.calculateAndSyncTour(p, processInstanceId);
+            } else {
+                tour = participantTourService.calculateTour(p);
+            }
+
+            // 2. If the primary tour is empty, attempt to resolve a shared tour from other participants in the same process context
+            if (isTourEmpty(tour)) {
+                Set<String> candidateIds = new LinkedHashSet<>();
+
+                if (processInstanceId != null) {
+                    List<Task> processTasks = taskService.createTaskQuery()
+                            .processInstanceId(processInstanceId)
+                            .list();
+                    for (Task task : processTasks) {
+                        String resolvedId = participantService.resolveParticipantForTask(task);
+                        if (resolvedId != null && !resolvedId.equals(id)) {
+                            candidateIds.add(resolvedId);
+                        }
+                    }
+                }
+
+                for (Participant otherP : participantDataService.getParticipants()) {
+                    if (!otherP.getId().equals(id)) {
+                        candidateIds.add(otherP.getId());
+                    }
+                }
+
+                for (String candidateId : candidateIds) {
+                    Optional<Participant> candidateOpt = participantDataService.getParticipant(candidateId);
+                    if (candidateOpt.isPresent()) {
+                        TourResponse candidateTour = processInstanceId != null
+                                ? participantTourService.calculateAndSyncTour(candidateOpt.get(), processInstanceId)
+                                : participantTourService.calculateTour(candidateOpt.get());
+
+                        if (!isTourEmpty(candidateTour)) {
+                            tour = candidateTour;
+                            break;
+                        }
+                    }
+                }
+            }
+
             return ResponseEntity.ok(Response.ok(tour));
         } catch (Exception e) {
             log.error("[Environment API] Failed to calculate tour for participant: {}", id, e);
@@ -515,5 +626,18 @@ public class EnvironmentController {
         }
 
         return task;
+    }
+
+    /**
+     * Private helper method to check if a tour is empty, meaning it has no target places and no navigation path.
+     *
+     * @param tour The tour to check.
+     * @return true if the tour is empty, false otherwise.
+     */
+    private boolean isTourEmpty(TourResponse tour) {
+        if (tour == null) return true;
+        boolean noTargets = tour.getTargetPlaceIds() == null || tour.getTargetPlaceIds().isEmpty();
+        boolean noPath = tour.getNavigationPath() == null || tour.getNavigationPath().isEmpty();
+        return noTargets && noPath;
     }
 }

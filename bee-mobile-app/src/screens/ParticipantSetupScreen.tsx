@@ -283,8 +283,6 @@ export const ParticipantSetupScreen: React.FC<Props> = ({navigation}) => {
         const activeId = currentParticipant?.id;
         if (!activeId || participants.length === 0) return;
 
-        console.log('🚀 Executing simulation start for:', activeId);
-
         try {
             setIsSaving(true);
             setIsConfirmModalVisible(false);

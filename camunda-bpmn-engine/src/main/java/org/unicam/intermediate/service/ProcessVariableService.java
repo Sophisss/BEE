@@ -199,7 +199,7 @@ public class ProcessVariableService {
      * Safely updates and re-persists the updated Data Object back into Camunda RuntimeService.
      *
      * @param processInstanceId target process instance ID
-     * @param variableName      root variable key (e.g. "Tour_settings")
+     * @param variableName      root variable key
      * @param fieldPath         dot-notation path pointing to the array (e.g. "targetPlaceIds")
      * @param index             the index of the element to remove (e.g. 0)
      */

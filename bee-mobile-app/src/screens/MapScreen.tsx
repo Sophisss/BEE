@@ -19,7 +19,7 @@ import {
     updateParticipantPositionFromCoordinatesApi,
     updateParticipantPositionApi,
     updatePlaceAttributeApi,
-    notifyEnvironmentChangeApi,
+    notifyEnvironmentChangeApi, completeTaskForParticipantApi,
 } from '../services/api';
 import {
     buildTourStepsForMap,
@@ -76,11 +76,19 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     const [activeTour, setActiveTour] = useState<TourResult | null>(null);
     const [isPlaceDropdownOpen, setIsPlaceDropdownOpen] = useState<boolean>(false);
 
-    // --- TIMESTAMP REF TO PREVENT POLLING RACE CONDITIONS ---
+    // --- REFS FOR POLLING & TRACKING ---
     const lastManualMoveTimeRef = useRef<number>(0);
+    const isSwitchingParticipantRef = useRef<boolean>(false);
+    const lastPositionRef = useRef<string | undefined>(undefined);
+    const unavailablePlacesRef = useRef<Set<string>>(new Set());
 
-    // --- TRACK VISITED PLACES TO PRESERVE GRAY PATH HISTORY ---
+    // --- TRACK VISITED PLACES FOR GRAY PATH ---
     const [visitedPlaceIds, setVisitedPlaceIds] = useState<string[]>([]);
+    const visitedPlaceIdsRef = useRef<string[]>([]);
+
+    useEffect(() => {
+        visitedPlaceIdsRef.current = visitedPlaceIds;
+    }, [visitedPlaceIds]);
 
     // --- CUSTOM ALERT MODAL STATE ---
     const [alertModal, setAlertModal] = useState<{ visible: boolean; title: string; message: string }>({
@@ -107,7 +115,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         }
     }, [currentPlace?.id]);
 
-    // Track user movements in history to prevent line disappearing during polling
+    // Track user movements in history
     useEffect(() => {
         if (activeParticipant?.currentPlaceId) {
             setVisitedPlaceIds((prev) => {
@@ -144,37 +152,95 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         setDraftAttributes(selectedPlace.attributes || {});
     }, [selectedPlace?.attributes, isEditingAttributes]);
 
-    // Track position directly in refs to prevent React state closure staleness during polling
-    const lastPositionRef = useRef<string | undefined>(undefined);
-    const isJustMovedRef = useRef<boolean>(false);
-
-    // Track unavailable places across polling cycles to detect reopening
-    const unavailablePlacesRef = useRef<Set<string>>(new Set());
-
-    // Initialize or sync position ref and visited steps when switching active participants
+    // Initial load
     useEffect(() => {
-        lastPositionRef.current = activeParticipant?.currentPlaceId;
-        setVisitedPlaceIds(activeParticipant?.currentPlaceId ? [activeParticipant.currentPlaceId] : []);
-    }, [activeParticipantId]);
+        let isMounted = true;
 
-    // --- FETCH PARTICIPANT TOUR ---
+        const loadInitialScreenData = async () => {
+            try {
+                const [ppData, edgesData, rawLpData, tour, actions] = await Promise.all([
+                    fetchPhysicalPlacesApi(),
+                    fetchEdgesApi(),
+                    fetchLogicalPlacesApi(),
+                    activeParticipantId ? fetchParticipantTourApi(activeParticipantId) : Promise.resolve(null),
+                    activeParticipantId ? refreshPendingActionsApi(activeParticipantId).catch(() => []) : Promise.resolve([]),
+                ]);
+
+                if (!isMounted) return;
+
+                setEnvironment({
+                    places: ppData && ppData.length > 0 ? ppData : [],
+                    edges: edgesData && edgesData.length > 0 ? edgesData : [],
+                });
+
+                if (rawLpData && rawLpData.length > 0) {
+                    const normalizedLp: Record<string, string[]> = {};
+                    rawLpData.forEach((logicalGroup: any) => {
+                        const groupName = logicalGroup.name || 'Uncategorized';
+                        const conditions = logicalGroup.conditions || [];
+                        normalizedLp[groupName] = ppData
+                            .filter((place: any) => conditions.every((cond: any) => matchesLogicalCondition(place, cond)))
+                            .map((place: any) => place.id || place.name);
+                    });
+                    setLogicalPlaces(normalizedLp);
+                }
+
+                if (tour) setActiveTour(tour);
+                if (actions) setPendingActions(actions);
+
+            } catch (error) {
+                console.warn('Error during initial MapScreen load:', error);
+            }
+        };
+
+        loadInitialScreenData().catch(e => console.warn('Error loading initial data:', e));
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    // Switch active participant
     useEffect(() => {
+        setIsEditingAttributes(false);
         if (!activeParticipantId) {
             setActiveTour(null);
             return;
         }
 
-        const loadTour = async () => {
+        isSwitchingParticipantRef.current = true;
+        lastPositionRef.current = activeParticipant?.currentPlaceId;
+        const initialVisited = activeParticipant?.currentPlaceId ? [activeParticipant.currentPlaceId] : [];
+        setVisitedPlaceIds(initialVisited);
+        visitedPlaceIdsRef.current = initialVisited;
+
+        let isMounted = true;
+
+        const loadInitialTourAndData = async () => {
             try {
-                const tour = await fetchParticipantTourApi(activeParticipantId);
-                setActiveTour(tour);
+                const [tour, actions] = await Promise.all([
+                    fetchParticipantTourApi(activeParticipantId),
+                    refreshPendingActionsApi(activeParticipantId).catch(() => [])
+                ]);
+
+                if (isMounted) {
+                    if (tour) setActiveTour(tour);
+                    if (actions) setPendingActions(actions);
+                }
             } catch (error) {
-                console.warn('Failed to load tour from backend:', error);
-                setActiveTour(null);
+                console.warn('Failed to load tour on participant switch:', error);
+            } finally {
+                if (isMounted) {
+                    isSwitchingParticipantRef.current = false;
+                }
             }
         };
 
-        loadTour().catch(e => console.warn('Error loading tour:', e));
+        loadInitialTourAndData().catch(e => console.warn('Error switching participant:', e));
+
+        return () => {
+            isMounted = false;
+        };
     }, [activeParticipantId]);
 
     // --- BUILD TOUR STEPS FOR MAP ---
@@ -183,17 +249,36 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         return buildTourStepsForMap(activeTour, environment.places);
     }, [activeTour, environment.places]);
 
-    // --- COMBINE VISITED STEPS WITH CURRENT TOUR STEPS ---
+    const activeTourRef = useRef(activeTour);
+    const activeTourStepsRef = useRef(activeTourSteps);
+
+    useEffect(() => {
+        activeTourRef.current = activeTour;
+        activeTourStepsRef.current = activeTourSteps;
+    }, [activeTour, activeTourSteps]);
+
+    // --- COMBINE VISITED STEPS & RECALCULATED PATH ---
     const combinedMapSteps = useMemo(() => {
-        const visitedSteps = visitedPlaceIds
+        const hasPois = activeTour?.targetPlaceIds && activeTour.targetPlaceIds.length > 0;
+
+        if (!hasPois) {
+            return activeTourSteps;
+        }
+
+        const currentStartPlaceId = activeTourSteps[0]?.placeId;
+        const pastVisitedIds = visitedPlaceIds.filter(
+            (id, index) => !(index === visitedPlaceIds.length - 1 && id === currentStartPlaceId)
+        );
+
+        const visitedSteps = pastVisitedIds
             .map((id) => environment.places.find((p) => p.id === id))
             .filter((p): p is Place => p !== undefined)
             .map((p, index) => {
                 const extPlace = p as any;
                 const coords = extPlace.coordinates;
 
-                let lat = 0;
-                let lng = 0;
+                let lat;
+                let lng;
 
                 if (Array.isArray(coords) && coords.length >= 2) {
                     lat = Number(coords[0]);
@@ -213,13 +298,8 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     order: index + 1,
                 };
             });
-
-        const newSteps = activeTourSteps.filter(
-            (step) => !visitedPlaceIds.includes(step.placeId)
-        );
-
-        return [...visitedSteps, ...newSteps];
-    }, [visitedPlaceIds, activeTourSteps, environment.places]);
+        return [...visitedSteps, ...activeTourSteps];
+    }, [visitedPlaceIds, activeTourSteps, environment.places, activeTour]);
 
     useEffect(() => {
         setPositionInput(activeParticipant?.currentPlaceId || '');
@@ -271,10 +351,25 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         }
     }, [activeParticipantId]);
 
-    // --- PERIODIC ENVIRONMENT & SMART TOUR RECALCULATION ---
+    const waitForNewPendingActions = async (participantId: string, maxAttempts = 5) => {
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const actions = await refreshPendingActionsApi(participantId).catch(() => []);
+            if (actions && actions.length > 0) {
+                return actions;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 350));
+        }
+        return await refreshPendingActionsApi(participantId).catch(() => []);
+    };
+
+    // --- PERIODIC ENVIRONMENT POLLING & AUTOMATIC RE-ROUTING ---
     useEffect(() => {
+        if (!activeParticipantId) return;
+
         const fetchEnvironmentData = async () => {
             try {
+                if (isSwitchingParticipantRef.current) return;
+
                 const [ppData, edgesData, rawLpData, participantsList] = await Promise.all([
                     fetchPhysicalPlacesApi(),
                     fetchEdgesApi(),
@@ -284,8 +379,8 @@ export const MapScreen: React.FC<Props> = ({route}) => {
 
                 setEnvironment((prev) => ({
                     ...prev,
-                    places: ppData.length > 0 ? ppData : prev.places,
-                    edges: edgesData.length > 0 ? edgesData : prev.edges,
+                    places: ppData && ppData.length > 0 ? ppData : prev.places,
+                    edges: edgesData && edgesData.length > 0 ? edgesData : prev.edges,
                 }));
 
                 if (participantsList && participantsList.length > 0) {
@@ -294,11 +389,14 @@ export const MapScreen: React.FC<Props> = ({route}) => {
 
                     setParticipants((prev) =>
                         participantsList.map((serverP) => {
-                            if (serverP.id === activeParticipantId && isRecentlyMoved) {
-                                const localP = prev.find((p) => p.id === activeParticipantId);
+                            const localP = prev.find((p) => p.id === serverP.id);
+                            const serverHasNull = !serverP.currentPlaceId || serverP.currentPlaceId === 'null';
+                            const localHasValue = !!localP?.currentPlaceId && localP.currentPlaceId !== 'null';
+
+                            if ((isRecentlyMoved || serverHasNull) && localHasValue) {
                                 return {
                                     ...serverP,
-                                    currentPlaceId: localP?.currentPlaceId || serverP.currentPlaceId,
+                                    currentPlaceId: localP.currentPlaceId,
                                 };
                             }
                             return serverP;
@@ -318,57 +416,85 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     setLogicalPlaces(normalizedLp);
                 }
 
-                if (activeParticipantId) {
-                    await reloadPendingActions(false);
+                await reloadPendingActions(false);
 
-                    const freshParticipant = participantsList?.find((p) => p.id === activeParticipantId);
-                    const freshPos = freshParticipant?.currentPlaceId;
+                const freshParticipant = participantsList?.find((p) => p.id === activeParticipantId);
+                const freshPos = freshParticipant?.currentPlaceId;
 
-                    // Set of currently closed places in the environment
-                    const currentUnavailableSet = new Set(
-                        ppData.filter((p: Place) => isPlaceClosed(p)).map((p: Place) => p.id)
-                    );
+                // --- 1. IDENTIFY CLOSED PLACES & ROUTE VARIABLES ---
+                const currentUnavailableSet = new Set(
+                    ppData.filter((p: Place) => isPlaceClosed(p)).map((p: Place) => p.id)
+                );
+                const previousUnavailableSet = unavailablePlacesRef.current;
 
-                    // Load initial tour if none exists
-                    if (!activeTour) {
-                        const initialTour = await fetchParticipantTourApi(activeParticipantId);
-                        setActiveTour(initialTour);
-                        lastPositionRef.current = freshPos;
-                        unavailablePlacesRef.current = currentUnavailableSet;
-                        return;
-                    }
+                // All planned places in the current active tour
+                const allPlannedPlaceIds = activeTourStepsRef.current.map((s) => s.placeId);
 
-                    // 1. CHECK IF A PLACE ON THE REMAINING PLANNED ROUTE IS CLOSED
-                    const remainingTourPlaceIds = activeTourSteps.map((s) => s.placeId);
-                    const isBlockedOnRoute = remainingTourPlaceIds.some((placeId) => currentUnavailableSet.has(placeId));
+                // Remaining steps ahead on the tour (excluding already visited places)
+                const remainingStepsBeforeMove = activeTourStepsRef.current
+                    .filter((s) => !visitedPlaceIdsRef.current.includes(s.placeId))
+                    .map((s) => s.placeId);
 
-                    // 2. CHECK IF PARTICIPANT IS OFF-COURSE (Only trigger if new position is NOT in planned route)
-                    const positionChanged = freshPos !== undefined && freshPos !== lastPositionRef.current;
-                    const isOnPlannedRoute = freshPos ? remainingTourPlaceIds.includes(freshPos) : true;
-                    const isOffCourse = positionChanged && !isOnPlannedRoute;
+                // --- 2. CHECK FOR STATE CHANGES (CLOSURES & REOPENING) ---
+                const newlyClosedPlaces = Array.from(currentUnavailableSet).filter(
+                    (id) => !previousUnavailableSet.has(id)
+                );
 
-                    // Recalculate tour only if necessary
-                    if (isBlockedOnRoute || isOffCourse) {
-                        const updatedTour = await fetchParticipantTourApi(activeParticipantId);
-                        setActiveTour(updatedTour);
+                const newlyReopenedPlaces = Array.from(previousUnavailableSet).filter(
+                    (id) => !currentUnavailableSet.has(id)
+                );
 
-                        if (isBlockedOnRoute) {
-                            triggerAlert(
-                                '⚠️ Route Recalculated',
-                                'A room along your route has been closed. An alternative path has been generated!'
-                            );
-                        } else if (isOffCourse) {
-                            triggerAlert(
-                                '🔄 Off Course',
-                                'You moved to a different location. The itinerary has been updated from your new position!'
-                            );
-                        }
-                    }
+                // Closure: notify & recalculate ONLY IF the place is part of the remaining steps on the route
+                const isClosedOnRemainingRoute = newlyClosedPlaces.some((placeId) =>
+                    remainingStepsBeforeMove.includes(placeId)
+                );
 
-                    lastPositionRef.current = freshPos;
-                    isJustMovedRef.current = false;
-                    unavailablePlacesRef.current = currentUnavailableSet;
+                // Reopening: recalculate if ANY previously unavailable room is now reopened
+                const isReopenedOnRemainingRoute = newlyReopenedPlaces.length > 0;
+
+                // --- 3. CHECK FOR OFF-COURSE MOVEMENT ---
+                const hasPreviousPosition = !!lastPositionRef.current && lastPositionRef.current !== 'null';
+                const positionChanged = hasPreviousPosition && freshPos !== lastPositionRef.current;
+
+                if (positionChanged && freshPos) {
+                    setVisitedPlaceIds((prev) => (prev.includes(freshPos) ? prev : [...prev, freshPos]));
                 }
+
+                const isOffCourse = positionChanged && !!freshPos && !allPlannedPlaceIds.includes(freshPos);
+
+                // --- 4. CONDITIONAL RE-ROUTING & NOTIFICATIONS ---
+                const updatedTour = await fetchParticipantTourApi(activeParticipantId);
+                const stepsArray = (updatedTour as any)?.steps || (updatedTour as any)?.navigationPath;
+
+                // Safeguard: update map state ONLY IF the backend returned a valid path array
+                if (updatedTour && Array.isArray(stepsArray) && stepsArray.length > 0) {
+                    setActiveTour(updatedTour);
+
+                    if (isClosedOnRemainingRoute) {
+                        const closedPlace = ppData.find((p: Place) => newlyClosedPlaces.includes(p.id));
+                        const name = closedPlace?.name || closedPlace?.id || 'A room';
+                        triggerAlert(
+                            '⚠️ Route Recalculated',
+                            `Room "${name}" along your path has been closed. An alternative route has been generated!`
+                        );
+                    } else if (isReopenedOnRemainingRoute) {
+                        const reopenedPlace = ppData.find((p: Place) => newlyReopenedPlaces.includes(p.id));
+                        const name = reopenedPlace?.name || reopenedPlace?.id || 'A room';
+                        triggerAlert(
+                            '🟢 Room Reopened',
+                            `Room "${name}" is accessible again! Your itinerary has been optimized to include it.`
+                        );
+                    }
+                } else if (isClosedOnRemainingRoute || isOffCourse) {
+                    // Alert the user if a route change occurred but no valid path was found
+                    triggerAlert(
+                        '⚠️ Route Blocked',
+                        'A room on your path closed, and no valid alternative route could be found.'
+                    );
+                }
+
+                if (freshPos) lastPositionRef.current = freshPos;
+                unavailablePlacesRef.current = currentUnavailableSet;
             } catch (err) {
                 console.warn('Backend fetch error:', err);
             }
@@ -377,7 +503,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         fetchEnvironmentData().catch(e => console.warn('Error fetching environment data:', e));
         const interval = setInterval(fetchEnvironmentData, 3000);
         return () => clearInterval(interval);
-    }, [activeParticipantId, activeTour, activeTourSteps, reloadPendingActions]);
+    }, [activeParticipantId, reloadPendingActions]);
 
     // --- FETCH PENDING ACTIONS ON PARTICIPANT CHANGE ---
     useEffect(() => {
@@ -386,7 +512,6 @@ export const MapScreen: React.FC<Props> = ({route}) => {
 
     const updateParticipantLocalPosition = (participantId: string, placeId: string) => {
         lastManualMoveTimeRef.current = Date.now();
-        isJustMovedRef.current = true;
         setParticipants((prev) =>
             prev.map((participant) =>
                 participant.id === participantId ? {...participant, currentPlaceId: placeId} : participant
@@ -410,13 +535,16 @@ export const MapScreen: React.FC<Props> = ({route}) => {
             return;
         }
 
-        // Instantly mark the target place as visited to preserve gray path trace
+        const allPlannedPlaceIds = activeTourSteps.map((s) => s.placeId);
+        const isOffCourseMove = allPlannedPlaceIds.length > 0 && !allPlannedPlaceIds.includes(targetPlaceId);
+
         setVisitedPlaceIds((prev) =>
             prev.includes(targetPlaceId) ? prev : [...prev, targetPlaceId]
         );
 
         updateParticipantLocalPosition(activeParticipantId, targetPlaceId);
         setIsUpdatingPosition(true);
+        setLoadingActions(true);
 
         try {
             await updateParticipantPositionApi(activeParticipantId, targetPlaceId);
@@ -425,11 +553,21 @@ export const MapScreen: React.FC<Props> = ({route}) => {
             const updatedTour = await fetchParticipantTourApi(activeParticipantId);
             setActiveTour(updatedTour);
 
-            await reloadPendingActions(false);
+            if (isOffCourseMove) {
+                triggerAlert(
+                    '📍 Position Updated',
+                    'You moved off the scheduled route. The itinerary has been recalculated from your new position!'
+                );
+            }
+
+            const updatedActions = await waitForNewPendingActions(activeParticipantId);
+            setPendingActions(updatedActions);
+
         } catch (error) {
             triggerAlert('Synchronization Error', 'Position updated locally, but server sync failed.');
         } finally {
             setIsUpdatingPosition(false);
+            setLoadingActions(false);
         }
     };
 
@@ -502,6 +640,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         }
 
         setIsUpdatingPosition(true);
+        setLoadingActions(true);
         try {
             const resolvedPlaceId = await updateParticipantPositionFromCoordinatesApi(
                 activeParticipantId,
@@ -526,12 +665,14 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                 updateParticipantLocalPosition(activeParticipantId, resolvedPlaceId);
 
                 const updatedTour = await fetchParticipantTourApi(activeParticipantId);
-                setActiveTour(updatedTour);
+                if (updatedTour) setActiveTour(updatedTour);
+
+                const updatedActions = await waitForNewPendingActions(activeParticipantId);
+                setPendingActions(updatedActions);
             } else {
                 updateParticipantLocalPosition(activeParticipantId, '');
             }
 
-            await reloadPendingActions(false);
             if (!resolvedPlaceId) {
                 triggerAlert('Position Update', 'No matching place found for the provided coordinates.');
             }
@@ -539,6 +680,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
             triggerAlert('Synchronization Error', 'Position sync failed on backend server.');
         } finally {
             setIsUpdatingPosition(false);
+            setLoadingActions(false);
         }
     };
 
@@ -546,12 +688,13 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         if (!selectedPlace) return;
         setIsSavingAttributes(true);
         const previousAttributes = {...(selectedPlace.attributes || {})};
+        const wasClosed = isPlaceClosed(selectedPlace);
 
         try {
             const parsedAttributes: Record<string, any> = {};
 
+            // Parse values prior to submitting
             for (const [key, rawValue] of Object.entries(draftAttributes)) {
-                await updatePlaceAttributeApi(selectedPlace.id, key, rawValue);
                 let parsedValue: any = rawValue;
                 if (rawValue === 'true') parsedValue = true;
                 else if (rawValue === 'false') parsedValue = false;
@@ -561,24 +704,52 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                 parsedAttributes[key] = parsedValue;
             }
 
+            // 1. Submit updates to the backend while isolating individual attribute failures
+            const updatePromises = Object.entries(parsedAttributes).map(([key, val]) =>
+                updatePlaceAttributeApi(selectedPlace.id, key, val).catch((err) => {
+                    console.warn(`Failed to update attribute ${key}:`, err);
+                    return null;
+                })
+            );
+            await Promise.all(updatePromises);
+
+            // 2. Evaluate updated place state
             const updatedPlaceMock: ExtendedPlace = {
                 ...selectedPlace,
                 attributes: parsedAttributes,
             };
             const isNowClosed = isPlaceClosed(updatedPlaceMock);
+            const isNowReopened = wasClosed && !isNowClosed;
 
+            // 3. Optimistic local update
             setEnvironment((prev) => ({
                 ...prev,
                 places: prev.places.map((p) => (p.id === selectedPlace.id ? {...p, attributes: parsedAttributes} : p)),
             }));
 
-            if (isNowClosed && activeParticipant) {
-                const reRoutedTour = await notifyEnvironmentChangeApi(activeParticipant, selectedPlace.id);
-                setActiveTour(reRoutedTour);
+            // Fetch latest participants list to reflect updated context
+            const freshParticipants = await refreshParticipantsApi();
+            if (freshParticipants && freshParticipants.length > 0) {
+                setParticipants(freshParticipants);
+            }
+
+            // 4. Notify environment change and trigger re-routing if active participant exists
+            if (activeParticipant) {
+                try {
+                    const reRoutedTour = await notifyEnvironmentChangeApi(activeParticipant, selectedPlace.id);
+                    const stepsArray = (reRoutedTour as any)?.steps || (reRoutedTour as any)?.navigationPath;
+
+                    if (reRoutedTour && Array.isArray(stepsArray) && stepsArray.length > 0) {
+                        setActiveTour(reRoutedTour);
+                    }
+                } catch (reRouteErr) {
+                    console.warn('Re-route notification deferred to background polling:', reRouteErr);
+                }
             }
 
             await reloadPendingActions(false);
             setIsEditingAttributes(false);
+
         } catch (error) {
             setDraftAttributes(previousAttributes);
             triggerAlert('❌ Update Failed', 'Failed to save place attributes. Previous values restored.');
@@ -604,7 +775,14 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                     Simulate participant movements and manage local place attributes in real time.
                 </Text>
 
-                {/* MAIN GRID: LEAFLET MAP + PANELS */}
+                {environment.places.length === 0 && (
+                    <View style={{padding: 20, alignItems: 'center', justifyContent: 'center'}}>
+                        <ActivityIndicator size="large" color="#38BDF8"/>
+                        <Text style={{color: '#94A3B8', marginTop: 10}}>Loading map and places...</Text>
+                    </View>
+                )}
+
+                {/* MAIN GRID */}
                 <View style={{flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 16, marginVertical: 15}}>
                     <LeafletMapView
                         environment={environment}
@@ -626,7 +804,12 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                                         <Text style={styles.physicalTitle}>{place.name || place.id}</Text>
                                         {place.attributes &&
                                             Object.entries(place.attributes)
-                                                .filter(([_, attrVal]) => attrVal !== null && attrVal !== undefined && attrVal !== 'null')
+                                                .filter(([attrKey, attrVal]) =>
+                                                    attrKey !== 'tags' &&
+                                                    attrVal !== null &&
+                                                    attrVal !== undefined &&
+                                                    attrVal !== 'null'
+                                                )
                                                 .map(([attrKey, attrVal]) => (
                                                     <View key={attrKey} style={styles.attributeRow}>
                                                         <Text style={styles.attrKey}>{attrKey}</Text>
@@ -658,7 +841,9 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                                 onPress={() => setActiveParticipantId(p.id)}
                             >
                                 <Text style={[styles.tabText, isActive && styles.activeTabText]}>👤 {p.name}</Text>
-                                <Text style={styles.tabSubText}>Pos: {p.currentPlaceId || 'Unknown'}</Text>
+                                <Text style={styles.tabSubText}>
+                                    Pos: {p.currentPlaceId && p.currentPlaceId !== 'null' ? p.currentPlaceId : 'Not assigned'}
+                                </Text>
                             </TouchableOpacity>
                         );
                     })}
@@ -679,7 +864,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                             style={styles.manualInput}
                             placeholder="ID or Place Name (e.g., place1, place2)"
                             placeholderTextColor="#64748B"
-                            value={positionInput}
+                            value={positionInput === 'null' ? '' : positionInput}
                             onChangeText={setPositionInput}
                         />
                         <TouchableOpacity
@@ -816,17 +1001,22 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                         {/* Attributes Editor Card Component */}
                         {selectedPlace && (
                             <>
-                                <PlaceAttributesCard
-                                    placeName={selectedPlace.name || selectedPlace.id}
-                                    attributes={draftAttributes}
-                                    onAttributeChange={(key, value) => {
-                                        setIsEditingAttributes(true);
-                                        setDraftAttributes((prev) => ({
-                                            ...prev,
-                                            [key]: value,
-                                        }));
-                                    }}
-                                />
+                                {(() => {
+                                    const {tags, ...filteredAttributes} = draftAttributes;
+                                    return (
+                                        <PlaceAttributesCard
+                                            placeName={selectedPlace.name || selectedPlace.id}
+                                            attributes={filteredAttributes}
+                                            onAttributeChange={(key, value) => {
+                                                setIsEditingAttributes(true);
+                                                setDraftAttributes((prev) => ({
+                                                    ...prev,
+                                                    [key]: value,
+                                                }));
+                                            }}
+                                        />
+                                    );
+                                })()}
 
                                 <TouchableOpacity
                                     style={[
@@ -840,8 +1030,9 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                                     {isSavingAttributes ? (
                                         <ActivityIndicator size="small" color="#0F172A"/>
                                     ) : (
-                                        <Text style={[styles.moveButtonText, {color: '#0F172A'}]}>UPDATE
-                                            ATTRIBUTES</Text>
+                                        <Text style={[styles.moveButtonText, {color: '#0F172A'}]}>
+                                            UPDATE ATTRIBUTES
+                                        </Text>
                                     )}
                                 </TouchableOpacity>
                             </>

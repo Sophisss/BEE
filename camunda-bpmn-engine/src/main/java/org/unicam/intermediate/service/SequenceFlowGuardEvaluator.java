@@ -233,8 +233,31 @@ public class SequenceFlowGuardEvaluator {
 
         String trimmedExpr = resolvedExpression.trim();
 
-        if (trimmedExpr.contains("#") || trimmedExpr.contains("(") || trimmedExpr.contains(")")) {
-            return evaluateSpelGuard(trimmedExpr, executionId, sourceId);
+        if (trimmedExpr.startsWith("(") && trimmedExpr.endsWith(")")) {
+            trimmedExpr = trimmedExpr.substring(1, trimmedExpr.length() - 1).trim();
+        }
+
+        if (trimmedExpr.contains("||")) {
+            String[] subExpressions = trimmedExpr.split("\\|\\|");
+            for (String sub : subExpressions) {
+                String cleanSub = sub.replace("(", "").replace(")", "").trim();
+                if (evaluateGuardExpression(processDefinitionId, cleanSub, sourceId, participantId, executionId)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if (trimmedExpr.contains("&&")) {
+            String[] subExpressions = trimmedExpr.split("&&");
+            for (String sub : subExpressions) {
+                String cleanSub = sub.replace("(", "").replace(")", "").trim();
+                if (!evaluateGuardExpression(processDefinitionId, cleanSub, sourceId, participantId, executionId)) {
+                    log.debug("[SequenceFlowGuardEvaluator] Sub-expression failed: '{}'", cleanSub);
+                    return false;
+                }
+            }
+            return true;
         }
 
         Matcher matcher = GUARD_PATTERN.matcher(trimmedExpr);

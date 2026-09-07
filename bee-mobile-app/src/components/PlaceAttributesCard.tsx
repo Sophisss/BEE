@@ -14,9 +14,20 @@ interface PlaceAttributesCardProps {
 
 // --- TYPE DETECTION HELPERS ---
 
-const isBoolean = (value: any): boolean => typeof value === 'boolean' || value === 'true' || value === 'false';
-const toBoolean = (value: any): boolean => typeof value === 'boolean' ? value : value === 'true';
-const isNumeric = (value: any): boolean => !isNaN(Number(value)) && String(value).trim() !== '' && !isBoolean(value);
+const isBooleanOrOnOff = (value: any): boolean => {
+    if (typeof value === 'boolean') return true;
+    const str = String(value ?? '').trim().toLowerCase();
+    return str === 'true' || str === 'false' || str === 'on' || str === 'off';
+};
+
+const toBoolean = (value: any): boolean => {
+    if (typeof value === 'boolean') return value;
+    const str = String(value ?? '').trim().toLowerCase();
+    return str === 'true' || str === 'on';
+};
+
+const isNumeric = (value: any): boolean =>
+    !isNaN(Number(value)) && String(value).trim() !== '' && !isBooleanOrOnOff(value);
 
 /**
  * Checks if a value is an Array or a string representation of an array (e.g. "[]").
@@ -109,20 +120,34 @@ const AttributeInput: React.FC<{
         );
     }
 
-    // 2. Boolean Switch (e.g. guided, needs_accessibility)
-    if (isBoolean(value)) {
+    // 2. Boolean & On/Off Switch (Handles true/false, "true"/"false", "on"/"off")
+    if (isBooleanOrOnOff(value)) {
         const boolVal = toBoolean(value);
+        const strVal = String(value ?? '').trim().toLowerCase();
+        const isOnOffFormat = strVal === 'on' || strVal === 'off';
+
+        const handleToggle = (newVal: boolean) => {
+            if (isOnOffFormat) {
+                onChange(attrKey, newVal ? 'on' : 'off');
+            } else {
+                onChange(attrKey, newVal);
+            }
+        };
+
         return (
             <View style={styles.toggleContainer}>
                 <Text style={[styles.toggleText, boolVal && styles.activeText]}>
-                    {boolVal ? 'ACTIVE' : 'INACTIVE'}
+                    {isOnOffFormat
+                        ? (boolVal ? 'ON' : 'OFF')
+                        : (boolVal ? 'ACTIVE' : 'INACTIVE')
+                    }
                 </Text>
                 <Switch
                     value={boolVal}
-                    onValueChange={(newVal) => onChange(attrKey, newVal)}
+                    onValueChange={handleToggle}
                     disabled={readOnly}
-                    trackColor={{false: '#334155', true: '#0F2942'}}
-                    thumbColor={boolVal ? '#38BDF8' : '#94A3B8'}
+                    trackColor={{false: '#1E293B', true: '#0D4A4D'}}
+                    thumbColor={boolVal ? '#10B981' : '#64748B'}
                 />
             </View>
         );
@@ -142,7 +167,7 @@ const AttributeInput: React.FC<{
         );
     }
 
-    // 4. Fallback: Standard Text TextInput (e.g. language or any free text attribute)
+    // 4. Fallback: Standard Text TextInput
     return (
         <TextInput
             style={[styles.input, readOnly && styles.inputDisabled]}

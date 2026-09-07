@@ -3,32 +3,23 @@ package org.unicam.intermediate.service.environmental;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.runtime.Execution;
 import org.springframework.stereotype.Service;
 import org.unicam.intermediate.models.dto.TourResponse;
 import org.unicam.intermediate.models.pojo.Edge;
 import org.unicam.intermediate.models.pojo.Participant;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
 import org.unicam.intermediate.service.ProcessVariableService;
+import org.unicam.intermediate.service.environmental.movement.MovementTaskRegistry;
 
-import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Service responsible for calculating optimal spatial navigation tours and target physical places
- * for process participants based on preferences, accessibility constraints, visited history, and historical cache.
+ * for process participants based on preferences and accessibility constraints.
  */
 @Service
 @RequiredArgsConstructor
@@ -36,8 +27,9 @@ import java.util.stream.Stream;
 public class ParticipantTourService {
 
     private final EnvironmentDataService environmentDataService;
-    private final RuntimeService runtimeService;
     private final ProcessVariableService processVariableService;
+    private final MovementTaskRegistry movementTaskRegistry;
+    private final RuntimeService runtimeService;
 
     /**
      * In-memory registry to track visited physical places per participant.
@@ -52,37 +44,66 @@ public class ParticipantTourService {
     }
 
     /**
-     * Resolves the navigation tour for a given participant.
-     *
-     * @param participant the target participant entity
-     * @return {@link TourResponse} containing target place IDs and calculated navigation path
-     */
-    public TourResponse resolveTourForParticipant(Participant participant) {
-        return calculateTour(participant);
-    }
-
-    /**
-     * Calculates and synchronizes recalculated target places directly into Camunda process variables.
+     * Calculates and synchronizes recalculated target places directly into Camunda process variables
+     * and updates the active movement pending action in MovementTaskRegistry.
      *
      * @param participant       the participant entity
      * @param processInstanceId active process instance ID
      * @return recalculated {@link TourResponse}
      */
     public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
-        TourResponse response = calculateTour(participant);
+        if (participant.getPosition() == null || participant.getPosition().isBlank()) {
+            return null;
+        }
 
-        if (processInstanceId != null && response != null && response.getTargetPlaceIds() != null && !response.getTargetPlaceIds().isEmpty()) {
-            try {
-                if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
-                    processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", response.getTargetPlaceIds());
-                } else {
-                    processVariableService.setVariable(processInstanceId, "targetPlaceIds", response.getTargetPlaceIds());
+        TourResponse response = calculateTour(participant);
+        if (processInstanceId == null || response == null || response.getTargetPlaceIds() == null) {
+            return response;
+        }
+
+        List<String> orderedTargets = new ArrayList<>(response.getTargetPlaceIds());
+
+        if (!orderedTargets.isEmpty()) {
+            String nextTarget = orderedTargets.get(0);
+
+            List<Execution> activeExecutions = runtimeService.createExecutionQuery()
+                    .processInstanceId(processInstanceId)
+                    .active()
+                    .list();
+
+            for (Execution exec : activeExecutions) {
+                List<String> activeActivityIds = runtimeService.getActiveActivityIds(exec.getId());
+                if (!activeActivityIds.isEmpty()) {
+                    String activityId = activeActivityIds.get(0);
+
+                    if (!movementTaskRegistry.hasActiveMovementTask(participant.getId())) {
+                        movementTaskRegistry.registerTask(
+                                participant.getId(),
+                                exec.getId(),
+                                activityId,
+                                nextTarget,
+                                null
+                        );
+                    }
+                    break;
                 }
-                log.info("[TOUR_SERVICE] Synchronized ordered targetPlaceIds to process instance {}: {}",
-                        processInstanceId, response.getTargetPlaceIds());
-            } catch (Exception e) {
-                log.warn("[TOUR_SERVICE] Could not sync targetPlaceIds to process instance: {}", e.getMessage());
             }
+        }
+
+        try {
+            if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
+                processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", orderedTargets);
+            } else {
+                processVariableService.setVariable(processInstanceId, "targetPlaceIds", orderedTargets);
+            }
+            log.info("[TOUR_SERVICE] Synchronized ordered targetPlaceIds to process instance {}: {}",
+                    processInstanceId, orderedTargets);
+        } catch (Exception e) {
+            log.warn(
+                    "[TOUR_SERVICE] Could not synchronize targetPlaceIds for process {}: {}",
+                    processInstanceId,
+                    e.getMessage()
+            );
         }
 
         return response;
@@ -97,7 +118,7 @@ public class ParticipantTourService {
      */
     public TourResponse calculateTour(Participant participant) {
         if (participant == null) {
-            return new TourResponse(List.of(), List.of());
+            return emptyTour();
         }
 
         List<PhysicalPlace> places = environmentDataService.getPhysicalPlaces();
@@ -106,6 +127,14 @@ public class ParticipantTourService {
         // Safely retrieve participant identifier and position
         String currentPlaceId = participant.getPosition();
         String participantId = participant.getId();
+
+        if (places == null || places.isEmpty()) {
+            places = List.of();
+        }
+
+        if (edges == null || edges.isEmpty()) {
+            edges = List.of();
+        }
 
         // Register current position as visited if both ID and position are present
         if (participantId != null && !participantId.isBlank() && currentPlaceId != null && !currentPlaceId.isBlank()) {
@@ -138,8 +167,6 @@ public class ParticipantTourService {
         List<String> targetPlaceIds = targetPlaces.stream()
                 .map(PhysicalPlace::getId)
                 .filter(id -> id != null && !id.isBlank())
-                // Exclude current location and all previously visited locations
-                .filter(id -> !id.equals(currentPlaceId))
                 .filter(id -> !visitedPlaces.contains(id))
                 .collect(Collectors.toList());
 
@@ -150,12 +177,13 @@ public class ParticipantTourService {
         }
 
         if (targetPlaceIds.isEmpty()) {
-            return new TourResponse(List.of(), List.of());
+            return emptyTour();
         }
 
+        // Build the environment graph
         Map<String, Set<String>> adjacency = buildAdjacency(places, edges, needsAccessibility);
 
-        // Calculate both the full path and the target IDs ordered by encounter sequence
+        // Calculate the navigation path and dynamically order the target places according to the shortest reachable path.
         TourPathResult tourPathResult = buildNavigationPathAndOrder(currentPlaceId, targetPlaceIds, adjacency);
 
         return new TourResponse(tourPathResult.orderedTargetIds(), tourPathResult.navigationPath());
@@ -175,75 +203,6 @@ public class ParticipantTourService {
         return calculateTour(participant);
     }
 
-    /**
-     * Attempts to retrieve the latest cached tour stored within active process instances.
-     *
-     * @param participant target participant entity
-     * @return optional containing the latest candidate tour if found
-     */
-    private Optional<TourResponse> findLatestStoredTour(Participant participant) {
-        if (participant == null || participant.getId() == null || participant.getId().isBlank()) {
-            return Optional.empty();
-        }
-
-        String participantId = participant.getId();
-        List<StoredTourCandidate> candidates = new ArrayList<>();
-        List<ProcessInstance> activeInstances = runtimeService.createProcessInstanceQuery().active().list();
-
-        for (ProcessInstance instance : activeInstances) {
-            Map<String, Object> variables = runtimeService.getVariables(instance.getProcessInstanceId());
-            for (Object rawVariable : variables.values()) {
-                if (!(rawVariable instanceof Map<?, ?> variableMap)) {
-                    continue;
-                }
-                Optional<StoredTourCandidate> parsed = toStoredTourCandidate(participantId, variableMap);
-                parsed.ifPresent(candidates::add);
-            }
-        }
-
-        return candidates.stream()
-                .max(Comparator.comparing(StoredTourCandidate::generatedAt))
-                .map(StoredTourCandidate::tourResponse);
-    }
-
-    /**
-     * Converts raw process instance variable map to a candidate stored tour.
-     *
-     * @param participantId target participant identifier
-     * @param variableMap   map representation of execution variables
-     * @return parsed tour candidate wrapped in an Optional
-     */
-    private Optional<StoredTourCandidate> toStoredTourCandidate(String participantId, Map<?, ?> variableMap) {
-        Object rawParticipant = variableMap.get("participantId");
-        if (!(rawParticipant instanceof String storedParticipantId) || !participantId.equals(storedParticipantId)) {
-            return Optional.empty();
-        }
-
-        List<String> targetPlaceIds = toStringList(variableMap.get("targetPlaceIds"));
-        List<String> navigationPath = toStringList(variableMap.get("navigationPath"));
-        if (targetPlaceIds.isEmpty() && navigationPath.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Instant generatedAt = Instant.EPOCH;
-        Object rawGeneratedAt = variableMap.get("generatedAt");
-        if (rawGeneratedAt instanceof String generatedAtText && !generatedAtText.isBlank()) {
-            generatedAt = Instant.parse(generatedAtText);
-        }
-
-        return Optional.of(new StoredTourCandidate(
-                generatedAt,
-                new TourResponse(targetPlaceIds, navigationPath)
-        ));
-    }
-
-    /**
-     * Case-insensitive robust matching between place tags and participant preferences.
-     *
-     * @param place                  target physical place
-     * @param participantPreferences list of preferred attributes/tags
-     * @return true if place matches at least one preference, false otherwise
-     */
     private boolean matchesParticipantPreferences(PhysicalPlace place, List<String> participantPreferences) {
         if (place == null || participantPreferences.isEmpty()) {
             return false;
@@ -254,18 +213,22 @@ public class ParticipantTourService {
             return false;
         }
 
-        Set<String> preferences = participantPreferences.stream()
+        Set<String> normalizedPlaceTags = placeTags.stream()
+                .filter(tag -> tag != null && !tag.isBlank())
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        Set<String> requiredPreferences = participantPreferences.stream()
+                .filter(pref -> pref != null && !pref.isBlank())
                 .map(String::trim)
                 .map(String::toLowerCase)
                 .filter(value -> !value.isBlank())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        for (String tag : placeTags) {
-            if (tag != null && preferences.contains(tag.trim().toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
+        if (requiredPreferences.isEmpty()) return false;
+
+        return normalizedPlaceTags.containsAll(requiredPreferences);
     }
 
     /**
@@ -277,9 +240,20 @@ public class ParticipantTourService {
      * @return graph representation as an adjacency map
      */
     private Map<String, Set<String>> buildAdjacency(List<PhysicalPlace> places, List<Edge> edges, boolean needsAccessibility) {
+        if (places == null) places = List.of();
+        if (edges == null) edges = List.of();
+
+        List<PhysicalPlace> finalPlaces = places;
         Set<String> physicalPlaceIds = places.stream()
+                .filter(Objects::nonNull)
                 .map(PhysicalPlace::getId)
-                .filter(id -> id != null && !id.isBlank())
+                .filter(Objects::nonNull)
+                .filter(id -> !id.isBlank())
+                .filter(id -> finalPlaces.stream()
+                        .filter(Objects::nonNull)
+                        .anyMatch(place -> id.equals(place.getId()) &&
+                                !isInaccessible(place) &&
+                                (!needsAccessibility || isAccessible(place))))
                 .collect(Collectors.toSet());
 
         Map<String, Set<String>> adjacency = new HashMap<>();
@@ -294,20 +268,6 @@ public class ParticipantTourService {
                 continue;
             }
 
-            PhysicalPlace sourcePlace = places.stream()
-                    .filter(p -> from.equals(p.getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            PhysicalPlace targetPlace = places.stream()
-                    .filter(p -> to.equals(p.getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (isInaccessible(sourcePlace) || isInaccessible(targetPlace)) {
-                continue;
-            }
-
             adjacency.computeIfAbsent(from, ignored -> new HashSet<>()).add(to);
             adjacency.computeIfAbsent(to, ignored -> new HashSet<>()).add(from);
         }
@@ -315,34 +275,47 @@ public class ParticipantTourService {
         return adjacency;
     }
 
-    /**
-     * Evaluates if a physical place presents physical accessibility obstacles or is closed.
-     *
-     * @param place target physical place entity
-     * @return true if the location is inaccessible, false otherwise
-     */
+    private boolean isAccessible(PhysicalPlace place) {
+        if (place == null || place.getAttributes() == null) {
+            return true;
+        }
+
+        Object accessible = place.getAttributes().get("accessible");
+        Object isAccessible = place.getAttributes().get("is_accessible");
+
+        if (Boolean.FALSE.equals(accessible)) {
+            return false;
+        }
+
+        if (Boolean.FALSE.equals(isAccessible)) {
+            return false;
+        }
+
+        return true;
+    }
+
     private boolean isInaccessible(PhysicalPlace place) {
         if (place == null || place.getAttributes() == null) {
             return false;
         }
 
-        Object hasStairs = place.getAttributes().get("has_stairs");
-        Object accessible = place.getAttributes().get("accessible");
-        Object isAccessible = place.getAttributes().get("is_accessible");
-        Object state = place.getAttributes().get("state");
-        Object status = place.getAttributes().get("status");
+        Map<String, Object> attributes = place.getAttributes();
+        Object hasStairs = attributes.get("has_stairs");
+        Object accessible = attributes.get("accessible");
+        Object isAccessible = attributes.get("is_accessible");
+        Object state = attributes.get("state");
+        Object status = attributes.get("status");
 
-        // 1. Check for architectural barriers
         if (Boolean.TRUE.equals(hasStairs) || Boolean.FALSE.equals(accessible)) {
             return true;
         }
 
-        // 2. Monitoring of temporary environmental conditions (e.g., cleaning/maintenance)
+        // Monitoring of temporary environmental conditions (e.g., cleaning/maintenance)
         if (Boolean.FALSE.equals(isAccessible)) {
             return true;
         }
 
-        // 3. Check for closed status/state (case-insensitive)
+        // Check for closed status/state (case-insensitive)
         if ((status instanceof String statusStr && "CLOSED".equalsIgnoreCase(statusStr.trim())) ||
                 (state instanceof String stateStr && "CLOSED".equalsIgnoreCase(stateStr.trim()))) {
             return true;
@@ -351,15 +324,22 @@ public class ParticipantTourService {
         return false;
     }
 
-    /**
-     * Calculates sequential path visiting all target places starting from current position using BFS
-     * and returns both the full physical navigation path and the target IDs ordered by visit sequence.
-     *
-     * @param currentPlaceId origin physical place identifier
-     * @param targetPlaceIds target destination identifiers
-     * @param adjacency      graph adjacency map
-     * @return {@link TourPathResult} containing ordered target IDs and full navigation path
-     */
+    private boolean isAccessibilityRequired(Map<String, Object> attributes) {
+        if (attributes == null) return false;
+
+        for (String key : new String[]{"needs_accessibility", "accessible", "wheelchair"}) {
+            Object value = attributes.get(key);
+            if (value instanceof Boolean bool && bool) {
+                return true;
+            }
+            if (value instanceof String str && Boolean.parseBoolean(str)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private TourPathResult buildNavigationPathAndOrder(String currentPlaceId, List<String> targetPlaceIds, Map<String, Set<String>> adjacency) {
         List<String> fullPath = new ArrayList<>();
         List<String> orderedTargets = new ArrayList<>();
@@ -384,17 +364,16 @@ public class ParticipantTourService {
                 }
             }
 
-            if (nextTargetIndex != -1 && bestPath.size() > 1) {
-                fullPath.addAll(bestPath.subList(1, bestPath.size()));
-
-                String visitedTarget = remainingTargets.get(nextTargetIndex);
-                orderedTargets.add(visitedTarget);
-
-                currentNode = visitedTarget;
-                remainingTargets.remove(nextTargetIndex);
-            } else {
+            if (nextTargetIndex == -1 || bestPath.size() <= 1) {
                 break;
             }
+
+            fullPath.addAll(bestPath.subList(1, bestPath.size()));
+            String visitedTarget = remainingTargets.get(nextTargetIndex);
+            orderedTargets.add(visitedTarget);
+
+            currentNode = visitedTarget;
+            remainingTargets.remove(nextTargetIndex);
         }
 
         return new TourPathResult(orderedTargets, fullPath);
@@ -477,6 +456,7 @@ public class ParticipantTourService {
 
         if (rawValue instanceof List<?> list) {
             return list.stream()
+                    .filter(Objects::nonNull)
                     .map(Object::toString)
                     .map(s -> s.replaceAll("[\\[\\]\"']", "").trim())
                     .filter(value -> !value.isBlank())
@@ -485,6 +465,7 @@ public class ParticipantTourService {
 
         if (rawValue instanceof Map<?, ?> map) {
             return map.keySet().stream()
+                    .filter(Objects::nonNull)
                     .map(Object::toString)
                     .map(s -> s.replaceAll("[\\[\\]\"']", "").trim())
                     .filter(value -> !value.isBlank())
@@ -494,11 +475,11 @@ public class ParticipantTourService {
         if (rawValue instanceof Iterable<?> iterable) {
             List<String> values = new ArrayList<>();
             for (Object value : iterable) {
-                if (value != null) {
-                    String str = value.toString().replaceAll("[\\[\\]\"']", "").trim();
-                    if (!str.isBlank()) {
-                        values.add(str);
-                    }
+                if (value == null) continue;
+
+                String str = value.toString().replaceAll("[\\[\\]\"']", "").trim();
+                if (!str.isBlank()) {
+                    values.add(str);
                 }
             }
             return values;
@@ -523,28 +504,10 @@ public class ParticipantTourService {
         return List.of();
     }
 
-    /**
-     * Determines whether accessibility constraints are requested by the participant.
-     *
-     * @param attributes participant attribute map
-     * @return true if accessibility features are explicitly required
-     */
-    private boolean isAccessibilityRequired(Map<String, Object> attributes) {
-        if (attributes == null) return false;
-
-        for (String key : new String[]{"needs_accessibility", "accessible", "wheelchair"}) {
-            Object value = attributes.get(key);
-            if (value instanceof Boolean bool && bool) {
-                return true;
-            }
-            if (value instanceof String str && Boolean.parseBoolean(str)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private record StoredTourCandidate(Instant generatedAt, TourResponse tourResponse) {
+    private TourResponse emptyTour() {
+        return new TourResponse(
+                List.of(),
+                List.of()
+        );
     }
 }
