@@ -3,13 +3,15 @@ package org.unicam.intermediate.service.environmental;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.runtime.Execution;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.stereotype.Service;
 import org.unicam.intermediate.models.dto.TourResponse;
 import org.unicam.intermediate.models.pojo.Edge;
 import org.unicam.intermediate.models.pojo.Participant;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
 import org.unicam.intermediate.service.ProcessVariableService;
+import org.unicam.intermediate.service.environmental.binding.BindingTaskRegistry;
 import org.unicam.intermediate.service.environmental.movement.MovementTaskRegistry;
 
 import java.util.*;
@@ -27,9 +29,12 @@ import java.util.stream.Stream;
 public class ParticipantTourService {
 
     private final EnvironmentDataService environmentDataService;
-    private final ProcessVariableService processVariableService;
     private final MovementTaskRegistry movementTaskRegistry;
+    private final ProcessVariableService processVariableService;
     private final RuntimeService runtimeService;
+    private final BoundParticipantsDiscordanceMonitor boundParticipantsMonitor;
+    private final TaskService taskService;
+    private final BindingTaskRegistry bindingTaskRegistry;
 
     /**
      * In-memory registry to track visited physical places per participant.
@@ -51,7 +56,47 @@ public class ParticipantTourService {
      * @param processInstanceId active process instance ID
      * @return recalculated {@link TourResponse}
      */
-    public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
+    // Ultimo corretto
+    /*public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
+        TourResponse response = calculateTour(participant);
+
+        // Keep both the ordered targets and the full path in sync, including empty tours.
+        if (processInstanceId != null && response != null) {
+            List<String> orderedTargets = response.getTargetPlaceIds() != null
+                    ? response.getTargetPlaceIds()
+                    : List.of();
+            List<String> navigationPath = response.getNavigationPath() != null
+                    ? response.getNavigationPath()
+                    : List.of();
+            try {
+               if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
+                    processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", orderedTargets);
+                    processVariableService.setNestedField(processInstanceId, "Tour_settings", "navigationPath", navigationPath);
+                }
+
+               *//*
+                List<String> boundPartners = boundParticipantsDiscordanceMonitor.getBoundPartners(participant.getId());
+                for (String partnerId : boundPartners) {
+                    String partnerProcessInstanceId = findProcessInstanceIdForParticipant(partnerId);
+                    if (partnerProcessInstanceId != null && processVariableService.variableExists(partnerProcessInstanceId, "Guided_Tour_Settings")) {
+                        processVariableService.setNestedField(partnerProcessInstanceId, "Guided_Tour_Settings", "targetPlaceIds", orderedTargets);
+                        processVariableService.setNestedField(partnerProcessInstanceId, "Guided_Tour_Settings", "navigationPath", navigationPath);
+                    }
+                }*//*
+
+     *//*if (!orderedTargets.isEmpty()) {
+                    String nextDestination = orderedTargets.get(0);
+                    movementTaskRegistry.updateDestinationFromTour(participant.getId(), nextDestination);
+                }*//*
+            } catch (Exception e) {
+                log.warn("[TOUR_SERVICE] Could not sync targetPlaceIds to process instance: {}", e.getMessage());
+            }
+        }
+
+        return response;
+    }*/
+
+   /* public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
         if (participant.getPosition() == null || participant.getPosition().isBlank()) {
             return null;
         }
@@ -76,6 +121,38 @@ public class ParticipantTourService {
                 if (!activeActivityIds.isEmpty()) {
                     String activityId = activeActivityIds.get(0);
 
+                    // 1. Eseguiamo la gestione SOLO SE il token BPMN si trova in un'attività di MOVIMENTO
+                    String bindingTarget = resolveBindingTarget(exec.getId());
+
+                    if (!movementTaskRegistry.hasActiveMovementTask(participant.getId())) {
+                        movementTaskRegistry.registerTask(
+                                participant.getId(),
+                                exec.getId(),
+                                activityId,
+                                nextTarget,
+                                null
+                        );
+                    } else {
+                        movementTaskRegistry.updateTaskDestination(participant.getId(), nextTarget);
+                    }
+                    break;
+                }
+            }
+        }
+
+        *//*if (!orderedTargets.isEmpty()) {
+            String nextTarget = orderedTargets.get(0);
+
+            List<Execution> activeExecutions = runtimeService.createExecutionQuery()
+                    .processInstanceId(processInstanceId)
+                    .active()
+                    .list();
+
+            for (Execution exec : activeExecutions) {
+                List<String> activeActivityIds = runtimeService.getActiveActivityIds(exec.getId());
+                if (!activeActivityIds.isEmpty()) {
+                    String activityId = activeActivityIds.get(0);
+
                     if (!movementTaskRegistry.hasActiveMovementTask(participant.getId())) {
                         movementTaskRegistry.registerTask(
                                 participant.getId(),
@@ -88,7 +165,7 @@ public class ParticipantTourService {
                     break;
                 }
             }
-        }
+        }*//*
 
         try {
             if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
@@ -107,6 +184,128 @@ public class ParticipantTourService {
         }
 
         return response;
+    }*/
+    public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
+        TourResponse response = calculateTour(participant);
+
+        if (processInstanceId != null && response != null) {
+            List<String> orderedTargets = response.getTargetPlaceIds() != null
+                    ? response.getTargetPlaceIds()
+                    : List.of();
+            List<String> navigationPath = response.getNavigationPath() != null
+                    ? response.getNavigationPath()
+                    : List.of();
+
+            try {
+                syncProcessVariables(processInstanceId, orderedTargets, navigationPath);
+
+                if (!orderedTargets.isEmpty()) {
+                    String nextDestination = orderedTargets.get(0);
+                    movementTaskRegistry.updateDestinationFromTour(participant.getId(), nextDestination);
+                }
+
+                List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(participant.getId());
+                for (String partnerId : boundPartners) {
+                    if (!orderedTargets.isEmpty()) {
+                        movementTaskRegistry.updateDestinationFromTour(partnerId, orderedTargets.get(0));
+                    }
+
+                    String partnerProcessInstanceId = findProcessInstanceIdForParticipant(partnerId);
+                    if (partnerProcessInstanceId != null) {
+                        syncProcessVariables(partnerProcessInstanceId, orderedTargets, navigationPath);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("[TOUR_SERVICE] Could not sync targetPlaceIds/navigationPath to process instances: {}", e.getMessage());
+            }
+        }
+
+        return response;
+    }
+
+    /**
+     * Sincronizza i campi targetPlaceIds e navigationPath nei Data Object di Camunda.
+     */
+    public void syncProcessVariables(String processInstanceId, List<String> targetPlaceIds, List<String> navigationPath) {
+        if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
+            processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", targetPlaceIds);
+            processVariableService.setNestedField(processInstanceId, "Tour_settings", "navigationPath", navigationPath);
+        }
+
+        if (processVariableService.variableExists(processInstanceId, "Guided_Tour_Settings")) {
+            processVariableService.setNestedField(processInstanceId, "Guided_Tour_Settings", "targetPlaceIds", targetPlaceIds);
+            processVariableService.setNestedField(processInstanceId, "Guided_Tour_Settings", "navigationPath", navigationPath);
+        }
+
+        if (processVariableService.variableExists(processInstanceId, "targetPlaceIds")) {
+            processVariableService.setVariable(processInstanceId, "targetPlaceIds", targetPlaceIds);
+        }
+
+        if (processVariableService.variableExists(processInstanceId, "navigationPath")) {
+            processVariableService.setVariable(processInstanceId, "navigationPath", navigationPath);
+        }
+    }
+
+    private String findProcessInstanceIdForParticipant(String participantId) {
+        if (participantId == null || participantId.isBlank()) {
+            return null;
+        }
+
+        String instanceId = runtimeService.createProcessInstanceQuery()
+                .active()
+                .variableValueEquals("participantId", participantId)
+                .list()
+                .stream()
+                .findFirst()
+                .map(ProcessInstance::getProcessInstanceId)
+                .orElse(null);
+
+        if (instanceId != null) {
+            return instanceId;
+        }
+
+        instanceId = runtimeService.createProcessInstanceQuery()
+                .active()
+                .processInstanceBusinessKey(participantId)
+                .list()
+                .stream()
+                .findFirst()
+                .map(ProcessInstance::getProcessInstanceId)
+                .orElse(null);
+
+        if (instanceId != null) {
+            return instanceId;
+        }
+
+        instanceId = bindingTaskRegistry.findProcessInstanceIdForParticipant(participantId);
+        if (instanceId != null) {
+            log.info("[TOUR_SERVICE] Resolved process instance {} for participant {} from binding task execution",
+                    instanceId, participantId);
+            return instanceId;
+        }
+
+        if (taskService != null) {
+            org.camunda.bpm.engine.task.Task activeTask = taskService.createTaskQuery()
+                    .taskAssignee(participantId)
+                    .active()
+                    .singleResult();
+
+            if (activeTask == null) {
+                List<org.camunda.bpm.engine.task.Task> tasksWithVar = taskService.createTaskQuery()
+                        .processVariableValueEquals("participantId", participantId)
+                        .active()
+                        .list();
+                if (!tasksWithVar.isEmpty()) {
+                    activeTask = tasksWithVar.get(0);
+                }
+            }
+
+            if (activeTask != null) {
+                return activeTask.getProcessInstanceId();
+            }
+        }
+
+        return null;
     }
 
     /**

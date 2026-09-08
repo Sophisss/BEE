@@ -110,6 +110,26 @@ public class BoundParticipantsDiscordanceMonitor {
     }
 
     /**
+     * Get all participants bound to a given participant.
+     * @param participantId The participant ID to check for bound partners.
+     * @return A list of participant IDs that are bound to the given participant.
+     */
+    public List<String> getBoundPartners(String participantId) {
+        if (participantId == null) {
+            return List.of();
+        }
+        List<String> partners = new ArrayList<>();
+        for (BoundPairState state : boundPairs.values()) {
+            if (participantId.equals(state.participantA)) {
+                partners.add(state.participantB);
+            } else if (participantId.equals(state.participantB)) {
+                partners.add(state.participantA);
+            }
+        }
+        return partners;
+    }
+
+    /**
      * Listen for position changes and update discordance state
      */
     @EventListener

@@ -92,6 +92,12 @@ public class ProcessVariableService {
             return null;
         }
 
+        if (!processInstanceExists(processInstanceId)) {
+            log.warn("Process instance '{}' does not exist; refusing to read variable '{}'",
+                    processInstanceId, variableName);
+            return null;
+        }
+
         try {
             // Try fetching from RuntimeService first
             Object variable = null;
@@ -465,5 +471,24 @@ public class ProcessVariableService {
         }
 
         return segments;
+    }
+
+    /**
+     * Checks if a process instance exists in either the runtime or history context.
+     * @param processInstanceId the process instance ID to check.
+     * @return true if the process instance exists, false otherwise.
+     */
+    private boolean processInstanceExists(String processInstanceId) {
+        try {
+            return runtimeService.createProcessInstanceQuery()
+                    .processInstanceId(processInstanceId)
+                    .singleResult() != null
+                    || historyService.createHistoricProcessInstanceQuery()
+                    .processInstanceId(processInstanceId)
+                    .singleResult() != null;
+        } catch (Exception e) {
+            log.warn("Unable to validate process instance '{}': {}", processInstanceId, e.getMessage());
+            return false;
+        }
     }
 }

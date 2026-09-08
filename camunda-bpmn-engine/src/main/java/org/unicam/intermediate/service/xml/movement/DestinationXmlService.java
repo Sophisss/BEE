@@ -39,11 +39,15 @@ public class DestinationXmlService extends AbstractXmlService {
     public String extractRaw(DelegateExecution execution) {
         String rawXmlValue = super.extractRaw(execution);
 
-        Object tourSettingsObj = execution.getVariable("Tour_settings");
-        if (tourSettingsObj instanceof Map<?, ?> tourSettings) {
-            Object targetIdsObj = tourSettings.get("targetPlaceIds");
+        String settingsName = resolveSettingsName(rawXmlValue);
+        Object settingsObj = execution.getVariable(settingsName);
+        if (settingsObj instanceof Map<?, ?> settings) {
+            Object targetIdsObj = settings.get("targetPlaceIds");
             if (targetIdsObj instanceof List<?> targetIds && !targetIds.isEmpty()) {
-                return targetIds.get(0).toString();
+                String dynamicDestination = targetIds.get(0).toString();
+                log.info("[DestinationXmlService] Dynamically resolved destination from {}[0] on {} -> '{}' (raw XML was '{}')",
+                        settingsName, execution.getCurrentActivityId(), dynamicDestination, rawXmlValue);
+                return dynamicDestination;
             }
         }
 
@@ -64,5 +68,12 @@ public class DestinationXmlService extends AbstractXmlService {
         super.restoreInstanceValue(execution, rawValue);
         log.info("[DestinationXmlService] restored <space:destination>='{}' on {}",
                 rawValue, execution.getCurrentActivityId());
+    }
+
+    private String resolveSettingsName(String rawXmlValue) {
+        if (rawXmlValue != null && rawXmlValue.contains("Guided_Tour_Settings")) {
+            return "Guided_Tour_Settings";
+        }
+        return "Tour_settings";
     }
 }

@@ -2,8 +2,10 @@ package org.unicam.intermediate.service.environmental.movement;
 
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.unicam.intermediate.events.ParticipantPositionChangedEvent;
 import org.unicam.intermediate.models.pojo.Condition;
 import org.unicam.intermediate.models.pojo.LogicalPlace;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
@@ -64,9 +66,71 @@ public class MovementTaskRegistry {
         MovementTaskInfo taskInfo = new MovementTaskInfo(executionId, normalizedDestination, participantId, activityId, timer);
         activeMovementTasks.put(participantId, taskInfo);
         movementTimerStartByExecutionId.remove(executionId);
-        
+
         log.info("[MovementRegistry] Registered movement task | Participant: {} | Activity: {} | Destination: {} | ExecutionId: {} | Timer: {}",
                 participantId, activityId, normalizedDestination, executionId, timer != null ? timer : "(empty)");
+    }
+
+    /**
+     * Completes a movement immediately when a position is set through the
+     * participant position API. The scheduled check remains as a fallback.
+     *
+     * @param event The event containing the participant's position change information.
+     */
+    @EventListener
+    public void onParticipantPositionChanged(ParticipantPositionChangedEvent event) {
+        if (event == null) {
+            return;
+        }
+
+        if (event.participantId() == null || event.newPosition() == null) {
+            return;
+        }
+
+        MovementTaskInfo taskInfo = activeMovementTasks.get(event.participantId());
+        if (taskInfo == null) {
+            return;
+        }
+
+        if (!isDestinationReached(taskInfo.destination(), event.newPosition())) {
+            log.info("[MovementRegistry] Position event does not reach destination | participant={} | current={} | destination={}",
+                    event.participantId(), event.newPosition(), taskInfo.destination());
+            return;
+        }
+
+        completeIfDestinationReached(taskInfo);
+    }
+
+
+    /**
+     * Updates the destination of an active movement task for a participant, if the destination has changed.
+     * This is useful when the participant's ordered tour changes and the movement destination needs to be updated accordingly.
+     *
+     * @param participantId The ID of the participant whose movement task destination needs to be updated.
+     * @param destination   The new destination to set for the participant's movement task.
+     */
+    public void updateDestinationFromTour(String participantId, String destination) {
+        if (participantId == null || destination == null || destination.isBlank()) {
+            return;
+        }
+
+        MovementTaskInfo currentTask = activeMovementTasks.get(participantId);
+        if (currentTask == null || Objects.equals(currentTask.destination(), destination)) {
+            return;
+        }
+
+        MovementTaskInfo updatedTask = new MovementTaskInfo(
+                currentTask.executionId(),
+                resolveDestinationReference(destination),
+                currentTask.participantId(),
+                currentTask.activityId(),
+                currentTask.timer()
+        );
+        if (activeMovementTasks.replace(participantId, currentTask, updatedTask)) {
+            log.info("[MovementRegistry] Updated movement destination from ordered tour | participant={} | oldDestination={} | newDestination={}",
+                    participantId, currentTask.destination(), updatedTask.destination());
+            completeIfDestinationReached(updatedTask);
+        }
     }
 
     /**
@@ -223,7 +287,7 @@ public class MovementTaskRegistry {
             }
 
             // Ottieni la posizione corrente del participant
-            Optional<org.unicam.intermediate.models.pojo.Participant> participantOpt = 
+            Optional<org.unicam.intermediate.models.pojo.Participant> participantOpt =
                     participantDataService.getParticipant(participantId);
 
             if (participantOpt.isPresent()) {
@@ -270,6 +334,26 @@ public class MovementTaskRegistry {
 
         // Rimuovi i task completati dal registro
         completedTasks.forEach(task -> removeTask(task.participantId(), task.executionId()));
+    }
+
+    /**
+     * Completes a movement task if the participant has reached the destination.
+     *
+     * @param taskInfo The movement task information containing the participant ID and destination.
+     */
+    private void completeIfDestinationReached(MovementTaskInfo taskInfo) {
+        Optional<String> currentPosition = participantDataService.getParticipant(taskInfo.participantId())
+                .map(org.unicam.intermediate.models.pojo.Participant::getPosition);
+        if (currentPosition.isEmpty() || !isDestinationReached(taskInfo.destination(), currentPosition.get())) {
+            return;
+        }
+
+        log.info("[MovementRegistry] Participant {} reached destination {} after position update | Completing task",
+                taskInfo.participantId(), taskInfo.destination());
+
+        if (signalMovement(taskInfo, taskInfo.participantId(), false)) {
+            removeTask(taskInfo.participantId(), taskInfo.executionId());
+        }
     }
 
     private boolean signalMovement(MovementTaskInfo taskInfo, String participantId, boolean timeout) {
@@ -348,7 +432,7 @@ public class MovementTaskRegistry {
      * A destination can be:
      * 1) a physical place id (legacy behavior), or
      * 2) a logical place id, in which case completion happens when participant
-     *    enters any physical place satisfying all logical-place conditions (AND semantics).
+     * enters any physical place satisfying all logical-place conditions (AND semantics).
      */
     private boolean isDestinationReached(String destination, String currentPosition) {
         if (destination == null || destination.isBlank() || currentPosition == null || currentPosition.isBlank()) {
@@ -381,28 +465,28 @@ public class MovementTaskRegistry {
 
         String trimmed = destination.trim();
         if (trimmed.startsWith(PARTICIPANT_DESTINATION_PREFIX)
-            && trimmed.length() > PARTICIPANT_DESTINATION_PREFIX.length()) {
+                && trimmed.length() > PARTICIPANT_DESTINATION_PREFIX.length()) {
             String participantRef = normalizeParticipantReference(
-                trimmed.substring(PARTICIPANT_DESTINATION_PREFIX.length()).trim()
+                    trimmed.substring(PARTICIPANT_DESTINATION_PREFIX.length()).trim()
             );
             Optional<String> participantPositionOpt = participantDataService.getParticipantByName(participantRef)
-                .or(() -> participantDataService.getParticipant(participantRef))
-                .map(org.unicam.intermediate.models.pojo.Participant::getPosition)
-                .filter(pos -> pos != null && !pos.isBlank());
+                    .or(() -> participantDataService.getParticipant(participantRef))
+                    .map(org.unicam.intermediate.models.pojo.Participant::getPosition)
+                    .filter(pos -> pos != null && !pos.isBlank());
 
             if (participantPositionOpt.isPresent()) {
-            String participantPosition = participantPositionOpt.get();
-            return environmentDataService.resolvePhysicalPlaceId(participantPosition)
-                .or(() -> environmentDataService.resolveLogicalPlaceId(participantPosition))
-                .orElse(participantPosition);
+                String participantPosition = participantPositionOpt.get();
+                return environmentDataService.resolvePhysicalPlaceId(participantPosition)
+                        .or(() -> environmentDataService.resolveLogicalPlaceId(participantPosition))
+                        .orElse(participantPosition);
             }
 
             return trimmed;
         }
 
         return environmentDataService.resolvePhysicalPlaceId(trimmed)
-            .or(() -> environmentDataService.resolveLogicalPlaceId(trimmed))
-            .orElse(trimmed);
+                .or(() -> environmentDataService.resolveLogicalPlaceId(trimmed))
+                .orElse(trimmed);
     }
 
     private String normalizeParticipantReference(String participantRef) {

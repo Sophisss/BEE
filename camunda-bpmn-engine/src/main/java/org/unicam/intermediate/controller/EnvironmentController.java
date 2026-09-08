@@ -15,10 +15,7 @@ import org.unicam.intermediate.models.pojo.LogicalPlace;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
 import org.unicam.intermediate.models.pojo.Participant;
 import org.unicam.intermediate.models.dto.TourResponse;
-import org.unicam.intermediate.service.environmental.EnvironmentDataService;
-import org.unicam.intermediate.service.environmental.EnvironmentalTaskRegistry;
-import org.unicam.intermediate.service.environmental.ParticipantTourService;
-import org.unicam.intermediate.service.environmental.SensorDataService;
+import org.unicam.intermediate.service.environmental.*;
 import org.unicam.intermediate.service.environmental.binding.BindingTaskRegistry;
 import org.unicam.intermediate.service.environmental.movement.MovementTaskRegistry;
 import org.unicam.intermediate.service.environmental.unbinding.UnbindingTaskRegistry;
@@ -26,6 +23,7 @@ import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.participant.ParticipantService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/environment")
@@ -44,6 +42,7 @@ public class EnvironmentController {
     private final TaskService taskService;
     private final ParticipantService participantService;
     private final RuntimeService runtimeService;
+    private final BoundParticipantsDiscordanceMonitor boundParticipantsMonitor;
 
     @GetMapping("/reload")
     public ResponseEntity<Response<String>> reloadEnvironmentGet() {
@@ -223,58 +222,71 @@ public class EnvironmentController {
                 return ResponseEntity.ok(Response.ok(List.of()));
             }
 
-            Set<String> targetParticipantIds = new LinkedHashSet<>();
-            targetParticipantIds.add(id);
+            List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(id);
+            TourResponse calculatedTour;
+
+            if (!boundPartners.isEmpty()) {
+                String guideId = boundPartners.get(0);
+                Participant guide = participantDataService.getParticipant(guideId).orElse(participant);
+                calculatedTour = participantTourService.calculateTour(guide);
+            } else {
+                calculatedTour = participantTourService.calculateTour(participant);
+            }
+
+            String targetId = (calculatedTour != null && calculatedTour.getTargetPlaceIds() != null && !calculatedTour.getTargetPlaceIds().isEmpty())
+                    ? calculatedTour.getTargetPlaceIds().get(0)
+                    : null;
 
             Task activeTask = findActiveUserTaskForParticipant(id);
+            Set<String> targetIds = new LinkedHashSet<>();
+            targetIds.add(id);
 
             if (activeTask != null) {
                 String resolvedId = participantService.resolveParticipantForTask(activeTask);
                 if (resolvedId != null && !resolvedId.isBlank()) {
-                    targetParticipantIds.add(resolvedId);
+                    targetIds.add(resolvedId);
                 }
             }
 
             List<Map<String, String>> pendingActions = new ArrayList<>();
+            List<Map<String, String>> pendingMovements = new ArrayList<>();
 
-            for (String candidateId : targetParticipantIds) {
-                pendingActions.addAll(environmentalTaskRegistry.getPendingActionsForParticipant(candidateId));
-                pendingActions.addAll(bindingTaskRegistry.getPendingBindingsForParticipant(candidateId));
-                pendingActions.addAll(unbindingTaskRegistry.getPendingUnbindingsForParticipant(candidateId));
+            for (String targetIdCandidate : targetIds) {
+                pendingActions.addAll(environmentalTaskRegistry.getPendingActionsForParticipant(targetIdCandidate));
+                pendingActions.addAll(bindingTaskRegistry.getPendingBindingsForParticipant(targetIdCandidate));
+                pendingActions.addAll(unbindingTaskRegistry.getPendingUnbindingsForParticipant(targetIdCandidate));
+                pendingMovements.addAll(movementTaskRegistry.getPendingMovementsForParticipant(targetIdCandidate));
             }
 
-            for (String candidateId : targetParticipantIds) {
-                List<Map<String, String>> movements = movementTaskRegistry.getPendingMovementsForParticipant(candidateId);
-
-                for (Map<String, String> movement : movements) {
-                    Map<String, String> updatedMovement = new HashMap<>(movement);
-
-                    String destinationId = updatedMovement.get("destination");
-
-                    if (destinationId != null && !destinationId.isBlank()) {
-                        Optional<PhysicalPlace> realPlaceOpt = environmentDataService.getPhysicalPlace(destinationId);
-
-                        String displayName = realPlaceOpt
-                                .map(PhysicalPlace::getName)
-                                .orElse(destinationId);
-
-                        String messageText = "Move to " + displayName;
-                        updatedMovement.put("destination", destinationId);
-                        updatedMovement.put("targetPlaceId", destinationId);
-                        updatedMovement.put("message", messageText);
-                        updatedMovement.put("description", messageText);
-                    }
-
-                    pendingActions.add(updatedMovement);
-                }
+            if (targetId == null && !pendingMovements.isEmpty()) {
+                targetId = pendingMovements.get(0).get("destination");
             }
 
-            return ResponseEntity.ok(Response.ok(pendingActions));
+            if (targetId == null) {
+                return ResponseEntity.ok(Response.ok(pendingActions));
+            }
+
+            Optional<PhysicalPlace> realPlaceOpt = environmentDataService.getPhysicalPlace(targetId);
+            String dynamicDisplayName = realPlaceOpt.map(PhysicalPlace::getName).orElse(targetId);
+
+
+            List<Map<String, String>> finalPendingActions = new ArrayList<>(pendingActions);
+            if (!pendingMovements.isEmpty()) {
+                Map<String, String> updatedMovement = new HashMap<>(pendingMovements.get(0));
+                String messageText = "Move to " + dynamicDisplayName;
+                updatedMovement.put("destination", targetId);
+                updatedMovement.put("message", messageText);
+                updatedMovement.put("targetPlaceId", targetId);
+                updatedMovement.put("description", messageText);
+                finalPendingActions.add(updatedMovement);
+            }
+
+            return ResponseEntity.ok(Response.ok(finalPendingActions));
+
         } catch (Exception e) {
             log.error("[Environment API] Failed to retrieve pending actions for participant: {}", id, e);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Response.error("Failed to retrieve pending actions: "
-                    + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Response.error("Failed to retrieve pending actions: " + e.getMessage()));
         }
     }
 
@@ -455,6 +467,15 @@ public class EnvironmentController {
                         .body(Response.error("Position cannot be empty"));
             }
             participantDataService.updateParticipantPosition(id, newPosition);
+            synchronizeParticipantTour(id);
+
+            List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(id);
+            for (String partnerId : boundPartners) {
+                participantDataService.updateParticipantPosition(partnerId, newPosition);
+                synchronizeParticipantTour(partnerId);
+                log.info("[Environment API] Auto-updated bound partner '{}' position to: {}", partnerId, newPosition);
+            }
+
             log.info("[Environment API] Participant '{}' position set to: {}", id, newPosition);
             return ResponseEntity.ok(Response.ok(newPosition));
         } catch (Exception e) {
@@ -489,7 +510,16 @@ public class EnvironmentController {
             Optional<PhysicalPlace> resolvedPlace = environmentDataService.resolvePhysicalPlaceByCoordinates(latitude, longitude);
 
             String placeId = resolvedPlace.map(PhysicalPlace::getId).orElse(null);
+
             participantDataService.updateParticipantPosition(id, placeId);
+            synchronizeParticipantTour(id);
+
+            List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(id);
+            for (String partnerId : boundPartners) {
+                participantDataService.updateParticipantPosition(partnerId, placeId);
+                synchronizeParticipantTour(partnerId);
+                log.info("[Environment API] Auto-updated bound partner '{}' position via coordinates to: {}", partnerId, placeId);
+            }
 
             if (placeId == null) {
                 log.info("[Environment API] Participant '{}' coordinates ({}, {}) did not match any place — position set to null",
@@ -581,6 +611,46 @@ public class EnvironmentController {
             log.error("[Environment API] Failed to update light sensor for place: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Response.error("Failed to update light sensor: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Synchronizes the participant's tour with the Camunda process instance,
+     * ensuring that the participant's current position and attributes are reflected in the process variables.
+     * @param participantId The ID of the participant whose tour needs to be synchronized.
+     */
+    private void synchronizeParticipantTour(String participantId) {
+        Optional<Participant> participantOpt = participantDataService.getParticipant(participantId);
+        if (participantOpt.isEmpty()) {
+            return;
+        }
+
+        Task activeTask = findActiveUserTaskForParticipant(participantId);
+        String processInstanceId = activeTask != null ? activeTask.getProcessInstanceId() : null;
+        if (processInstanceId == null) {
+            processInstanceId = runtimeService.createProcessInstanceQuery()
+                    .active()
+                    .variableValueEquals("participantId", participantId)
+                    .list()
+                    .stream()
+                    .findFirst()
+                    .map(ProcessInstance::getProcessInstanceId)
+                    .orElse(null);
+        }
+
+        if (processInstanceId != null) {
+            TourResponse synchronizedTour = participantTourService.calculateAndSyncTour(participantOpt.get(), processInstanceId);
+            List<String> orderedTargets = synchronizedTour != null
+                    ? synchronizedTour.getTargetPlaceIds()
+                    : null;
+            if (orderedTargets != null && !orderedTargets.isEmpty()) {
+                movementTaskRegistry.updateDestinationFromTour(participantId, orderedTargets.get(0));
+
+                List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(participantId);
+                for (String partnerId : boundPartners) {
+                    movementTaskRegistry.updateDestinationFromTour(partnerId, orderedTargets.get(0));
+                }
+            }
         }
     }
 

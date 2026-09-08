@@ -2,8 +2,10 @@ package org.unicam.intermediate.service.environmental.binding;
 
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.unicam.intermediate.events.ParticipantPositionChangedEvent;
 import org.unicam.intermediate.models.record.BindingTaskInfo;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.environmental.BoundParticipantsDiscordanceMonitor;
@@ -37,6 +39,9 @@ public class BindingTaskRegistry {
     // executionId -> epoch millis when binding timer started
     private final Map<String, Long> bindingTimerStartByExecutionId = new ConcurrentHashMap<>();
 
+    // Keeps the process instance associated with a participant after its binding task is completed.
+    private final Map<String, String> processInstanceByParticipant = new ConcurrentHashMap<>();
+
     public BindingTaskRegistry(ParticipantDataService participantDataService,
                                RuntimeService runtimeService,
                                BoundParticipantsDiscordanceMonitor boundParticipantsMonitor) {
@@ -60,6 +65,14 @@ public class BindingTaskRegistry {
         log.info("[BindingRegistry] Registering task: BK={} | {} -> {} | exec={} | activity={} | timer={}",
                 businessKey, participantId, targetParticipantId, executionId, activityId, timer != null ? timer : "(empty)");
 
+        BindingTaskInfo previousWaiting = waitingByParticipant.remove(participantId);
+        if (previousWaiting != null && !previousWaiting.executionId().equals(executionId)) {
+            bindingTimerStartByExecutionId.remove(previousWaiting.executionId());
+            log.info("[BindingRegistry] Replaced stale waiting task for participant {} | oldExecution={} | newExecution={}",
+                    participantId, previousWaiting.executionId(), executionId);
+        }
+        removeActivePairsForParticipant(participantId, businessKey);
+
         BindingTaskInfo taskInfo = new BindingTaskInfo(
                 businessKey,
                 participantId,
@@ -69,6 +82,10 @@ public class BindingTaskRegistry {
                 timer
         );
         waitingByParticipant.put(participantId, taskInfo);
+        String processInstanceId = getProcessInstanceId(executionId);
+        if (processInstanceId != null) {
+            processInstanceByParticipant.put(participantId, processInstanceId);
+        }
         bindingTimerStartByExecutionId.remove(executionId);
 
         log.info("[BindingRegistry] Registered waiting binding task | BK: {} | participant: {} -> target: {}",
@@ -160,6 +177,63 @@ public class BindingTaskRegistry {
         return false;
     }
 
+    public String findProcessInstanceIdForParticipant(String participantId) {
+        if (participantId == null || participantId.isBlank()) {
+            return null;
+        }
+
+        String registeredProcessInstanceId = processInstanceByParticipant.get(participantId);
+        if (registeredProcessInstanceId != null
+                && runtimeService.createProcessInstanceQuery()
+                .processInstanceId(registeredProcessInstanceId)
+                .active()
+                .singleResult() != null) {
+            return registeredProcessInstanceId;
+        }
+
+        List<String> executionIds = new ArrayList<>();
+        BindingTaskInfo waitingTask = waitingByParticipant.get(participantId);
+        if (waitingTask != null) {
+            executionIds.add(waitingTask.executionId());
+        }
+
+        for (BindingPair pair : activePairs.values()) {
+            if (participantId.equals(pair.first.participantId())) {
+                executionIds.add(pair.first.executionId());
+            }
+            if (participantId.equals(pair.second.participantId())) {
+                executionIds.add(pair.second.executionId());
+            }
+        }
+
+        for (String executionId : executionIds) {
+            org.camunda.bpm.engine.runtime.Execution execution = runtimeService
+                    .createExecutionQuery()
+                    .executionId(executionId)
+                    .singleResult();
+            if (execution != null) {
+                return execution.getProcessInstanceId();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Re-evaluates binding immediately after a manual participant position update.
+     * The scheduled check remains as a fallback.
+     */
+    @EventListener
+    public void onParticipantPositionChanged(ParticipantPositionChangedEvent event) {
+        if (event == null || event.participantId() == null) {
+            return;
+        }
+
+        log.info("[BindingRegistry] Position event received | participant={} | oldPosition={} | newPosition={}",
+                event.participantId(), event.oldPosition(), event.newPosition());
+        checkBindingCompletion();
+    }
+
     private Map<String, String> toBindingView(BindingTaskInfo taskInfo, String counterpartParticipantId) {
         Map<String, String> view = new LinkedHashMap<>();
         view.put("executionId", taskInfo.executionId());
@@ -176,7 +250,7 @@ public class BindingTaskRegistry {
     }
 
     @Scheduled(fixedRate = 2000)
-    public void checkBindingCompletion() {
+    public synchronized void checkBindingCompletion() {
         List<String> timedOutWaitingParticipants = new ArrayList<>();
 
         if (!waitingByParticipant.isEmpty()) {
@@ -244,15 +318,15 @@ public class BindingTaskRegistry {
 
                     runtimeService.signal(pair.first.executionId());
                     runtimeService.signal(pair.second.executionId());
-                    
+
                     // Notify the discordance monitor that this pair is now bound
                     boundParticipantsMonitor.markBound(
                             pair.first.businessKey(),
-                        processInstanceId,
+                            processInstanceId,
                             pair.first.participantId(),
                             pair.second.participantId()
                     );
-                    
+
                     pairsToRemove.add(pairKey);
                 } catch (Exception e) {
                     log.error("[BindingRegistry] Failed to signal pair {}: {}", pairKey, e.getMessage(), e);
@@ -367,6 +441,23 @@ public class BindingTaskRegistry {
         waitingByParticipant.remove(pair.second.participantId());
         bindingTimerStartByExecutionId.remove(pair.first.executionId());
         bindingTimerStartByExecutionId.remove(pair.second.executionId());
+    }
+
+    private void removeActivePairsForParticipant(String participantId, String businessKey) {
+        for (Map.Entry<String, BindingPair> entry : activePairs.entrySet()) {
+            BindingPair pair = entry.getValue();
+            boolean sameBusinessKey = businessKey.equals(pair.first.businessKey())
+                    && businessKey.equals(pair.second.businessKey());
+            boolean containsParticipant = participantId.equals(pair.first.participantId())
+                    || participantId.equals(pair.second.participantId());
+            if (sameBusinessKey && containsParticipant) {
+                if (activePairs.remove(entry.getKey(), pair)) {
+                    cleanupPair(pair);
+                    log.info("[BindingRegistry] Removed stale active pair {} before registering a new task for {}",
+                            entry.getKey(), participantId);
+                }
+            }
+        }
     }
 
     private void tryActivatePair(BindingTaskInfo current) {
