@@ -466,31 +466,54 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                 const updatedTour = await fetchParticipantTourApi(activeParticipantId);
                 const stepsArray = (updatedTour as any)?.steps || (updatedTour as any)?.navigationPath;
 
-                // Safeguard: update map state ONLY IF the backend returned a valid path array
-                if (updatedTour && Array.isArray(stepsArray) && stepsArray.length > 0) {
+                const hasRemainingTargets = Array.isArray(updatedTour?.targetPlaceIds) && updatedTour.targetPlaceIds.length > 0;
+                const hasValidSteps = Array.isArray(stepsArray) && stepsArray.length > 0;
+
+                if (updatedTour) {
                     setActiveTour(updatedTour);
 
-                    if (isClosedOnRemainingRoute) {
-                        const closedPlace = ppData.find((p: Place) => newlyClosedPlaces.includes(p.id));
-                        const name = closedPlace?.name || closedPlace?.id || 'A room';
-                        triggerAlert(
-                            '⚠️ Route Recalculated',
-                            `Room "${name}" along your path has been closed. An alternative route has been generated!`
-                        );
-                    } else if (isReopenedOnRemainingRoute) {
-                        const reopenedPlace = ppData.find((p: Place) => newlyReopenedPlaces.includes(p.id));
-                        const name = reopenedPlace?.name || reopenedPlace?.id || 'A room';
-                        triggerAlert(
-                            '🟢 Room Reopened',
-                            `Room "${name}" is accessible again! Your itinerary has been optimized to include it.`
-                        );
+                    if (hasRemainingTargets) {
+                        if (!hasValidSteps) {
+                            const isRelevantClosure = newlyClosedPlaces.some(
+                                (id) => remainingStepsBeforeMove.includes(id) || updatedTour.targetPlaceIds.includes(id)
+                            ) || remainingStepsBeforeMove.some((id) => currentUnavailableSet.has(id));
+
+                            if (isRelevantClosure) {
+                                triggerAlert(
+                                    '⚠️ Route Blocked',
+                                    'A room on your path or a target POI is closed, making remaining destinations unreachable.'
+                                );
+                            }
+                        } else {
+                            const closedOnRouteId = newlyClosedPlaces.find(
+                                (id) => remainingStepsBeforeMove.includes(id) || updatedTour.targetPlaceIds.includes(id)
+                            ) || remainingStepsBeforeMove.find((id) => currentUnavailableSet.has(id));
+
+                            if (closedOnRouteId) {
+                                const closedPlace = ppData.find((p: Place) => p.id === closedOnRouteId);
+                                const name = closedPlace?.name || closedOnRouteId || 'A room';
+
+                                triggerAlert(
+                                    '⚠️ Route Recalculated',
+                                    `Room "${name}" along your path has been closed. An alternative route has been generated!`
+                                );
+                            } else if (newlyReopenedPlaces.length > 0) {
+                                const relevantReopenedId = newlyReopenedPlaces.find(
+                                    (id) => stepsArray.includes(id) || updatedTour.targetPlaceIds.includes(id)
+                                );
+
+                                if (relevantReopenedId) {
+                                    const reopenedPlace = ppData.find((p: Place) => p.id === relevantReopenedId);
+                                    const name = reopenedPlace?.name || relevantReopenedId || 'A room';
+
+                                    triggerAlert(
+                                        '🟢 Room Reopened',
+                                        `Room "${name}" is accessible again! Your itinerary has been optimized to include it.`
+                                    );
+                                }
+                            }
+                        }
                     }
-                } else if (isClosedOnRemainingRoute || isOffCourse) {
-                    // Alert the user if a route change occurred but no valid path was found
-                    triggerAlert(
-                        '⚠️ Route Blocked',
-                        'A room on your path closed, and no valid alternative route could be found.'
-                    );
                 }
 
                 if (freshPos) lastPositionRef.current = freshPos;

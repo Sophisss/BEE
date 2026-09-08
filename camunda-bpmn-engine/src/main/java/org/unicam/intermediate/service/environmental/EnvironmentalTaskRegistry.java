@@ -384,7 +384,7 @@ public class EnvironmentalTaskRegistry {
         }
 
         // 3. RECALCULATE AND SYNCHRONIZE PARTICIPANT TOUR UPON STATE UPDATE
-        if (taskInfo != null && taskInfo.participantId() != null) {
+        if (!stateChanged && taskInfo != null && taskInfo.participantId() != null) {
             try {
                 participantDataService.getParticipant(taskInfo.participantId()).ifPresent(participant -> {
                     TourResponse updatedTour = participantTourService.calculateTour(participant);
