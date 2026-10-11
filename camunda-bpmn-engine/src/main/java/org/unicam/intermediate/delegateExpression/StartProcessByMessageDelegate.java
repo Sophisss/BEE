@@ -105,10 +105,10 @@ public class StartProcessByMessageDelegate implements JavaDelegate {
                     log.info("[StartByMessage] Loaded FRESH attributes for participant '{}': {}",
                             participantId, participant.getAttributes());
                 } else {
-                    log.warn("[StartByMessage] Participant '{}' found, but has empty attributes in DB!", participantId);
+                    log.warn("[StartByMessage] Participant '{}' found, but has empty attributes in DB", participantId);
                 }
             } else {
-                log.warn("[StartByMessage] Participant '{}' not found in ParticipantDataService!", participantId);
+                log.warn("[StartByMessage] Participant '{}' not found in ParticipantDataService", participantId);
             }
         }
 
@@ -118,6 +118,12 @@ public class StartProcessByMessageDelegate implements JavaDelegate {
         return variables;
     }
 
+    /**
+     * Starts a new process instance by message, ensuring that no active instance with the same businessKey exists.
+     * @param messageName the message start event name
+     * @param businessKey the business key for the process instance
+     * @param variables the process variables to be passed to the new instance
+     */
     private void startProcessByMessage(String messageName, String businessKey, Map<String, Object> variables) {
         if (businessKey == null || businessKey.isBlank()) {
             runtimeService.startProcessInstanceByMessage(messageName, variables);
@@ -144,12 +150,14 @@ public class StartProcessByMessageDelegate implements JavaDelegate {
      * @return {@code true} if an active instance exists, {@code false} otherwise
      */
     private boolean hasActiveMessageStartedProcess(String messageName, String businessKey) {
+        // Query for all active process definitions that have a message start event with the given message name
         List<ProcessDefinition> targetDefinitions = repositoryService.createProcessDefinitionQuery()
                 .messageEventSubscriptionName(messageName)
                 .latestVersion()
                 .active()
                 .list();
 
+        // Check if any of the target process definitions have an active instance with the same business key
         for (ProcessDefinition definition : targetDefinitions) {
             long activeInstances = runtimeService.createProcessInstanceQuery()
                     .processDefinitionKey(definition.getKey())

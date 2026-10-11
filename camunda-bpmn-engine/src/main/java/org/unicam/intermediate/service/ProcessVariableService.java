@@ -20,10 +20,8 @@ import java.util.stream.Collectors;
 
 /**
  * Service for managing BPMN Data Objects and process variables via Camunda engine services.
- * <p>
  * Supports deep path traversing, nested JSON property retrieval, array index manipulations,
  * and element removals from nested collections.
- * </p>
  */
 @Service
 @RequiredArgsConstructor

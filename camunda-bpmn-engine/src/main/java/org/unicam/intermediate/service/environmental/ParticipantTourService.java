@@ -56,135 +56,6 @@ public class ParticipantTourService {
      * @param processInstanceId active process instance ID
      * @return recalculated {@link TourResponse}
      */
-    // Ultimo corretto
-    /*public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
-        TourResponse response = calculateTour(participant);
-
-        // Keep both the ordered targets and the full path in sync, including empty tours.
-        if (processInstanceId != null && response != null) {
-            List<String> orderedTargets = response.getTargetPlaceIds() != null
-                    ? response.getTargetPlaceIds()
-                    : List.of();
-            List<String> navigationPath = response.getNavigationPath() != null
-                    ? response.getNavigationPath()
-                    : List.of();
-            try {
-               if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
-                    processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", orderedTargets);
-                    processVariableService.setNestedField(processInstanceId, "Tour_settings", "navigationPath", navigationPath);
-                }
-
-               *//*
-                List<String> boundPartners = boundParticipantsDiscordanceMonitor.getBoundPartners(participant.getId());
-                for (String partnerId : boundPartners) {
-                    String partnerProcessInstanceId = findProcessInstanceIdForParticipant(partnerId);
-                    if (partnerProcessInstanceId != null && processVariableService.variableExists(partnerProcessInstanceId, "Guided_Tour_Settings")) {
-                        processVariableService.setNestedField(partnerProcessInstanceId, "Guided_Tour_Settings", "targetPlaceIds", orderedTargets);
-                        processVariableService.setNestedField(partnerProcessInstanceId, "Guided_Tour_Settings", "navigationPath", navigationPath);
-                    }
-                }*//*
-
-     *//*if (!orderedTargets.isEmpty()) {
-                    String nextDestination = orderedTargets.get(0);
-                    movementTaskRegistry.updateDestinationFromTour(participant.getId(), nextDestination);
-                }*//*
-            } catch (Exception e) {
-                log.warn("[TOUR_SERVICE] Could not sync targetPlaceIds to process instance: {}", e.getMessage());
-            }
-        }
-
-        return response;
-    }*/
-
-   /* public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
-        if (participant.getPosition() == null || participant.getPosition().isBlank()) {
-            return null;
-        }
-
-        TourResponse response = calculateTour(participant);
-        if (processInstanceId == null || response == null || response.getTargetPlaceIds() == null) {
-            return response;
-        }
-
-        List<String> orderedTargets = new ArrayList<>(response.getTargetPlaceIds());
-
-        if (!orderedTargets.isEmpty()) {
-            String nextTarget = orderedTargets.get(0);
-
-            List<Execution> activeExecutions = runtimeService.createExecutionQuery()
-                    .processInstanceId(processInstanceId)
-                    .active()
-                    .list();
-
-            for (Execution exec : activeExecutions) {
-                List<String> activeActivityIds = runtimeService.getActiveActivityIds(exec.getId());
-                if (!activeActivityIds.isEmpty()) {
-                    String activityId = activeActivityIds.get(0);
-
-                    // 1. Eseguiamo la gestione SOLO SE il token BPMN si trova in un'attività di MOVIMENTO
-                    String bindingTarget = resolveBindingTarget(exec.getId());
-
-                    if (!movementTaskRegistry.hasActiveMovementTask(participant.getId())) {
-                        movementTaskRegistry.registerTask(
-                                participant.getId(),
-                                exec.getId(),
-                                activityId,
-                                nextTarget,
-                                null
-                        );
-                    } else {
-                        movementTaskRegistry.updateTaskDestination(participant.getId(), nextTarget);
-                    }
-                    break;
-                }
-            }
-        }
-
-        *//*if (!orderedTargets.isEmpty()) {
-            String nextTarget = orderedTargets.get(0);
-
-            List<Execution> activeExecutions = runtimeService.createExecutionQuery()
-                    .processInstanceId(processInstanceId)
-                    .active()
-                    .list();
-
-            for (Execution exec : activeExecutions) {
-                List<String> activeActivityIds = runtimeService.getActiveActivityIds(exec.getId());
-                if (!activeActivityIds.isEmpty()) {
-                    String activityId = activeActivityIds.get(0);
-
-                    if (!movementTaskRegistry.hasActiveMovementTask(participant.getId())) {
-                        movementTaskRegistry.registerTask(
-                                participant.getId(),
-                                exec.getId(),
-                                activityId,
-                                nextTarget,
-                                null
-                        );
-                    }
-                    break;
-                }
-            }
-        }*//*
-
-        try {
-            if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
-                processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", orderedTargets);
-            } else {
-                processVariableService.setVariable(processInstanceId, "targetPlaceIds", orderedTargets);
-            }
-            log.info("[TOUR_SERVICE] Synchronized ordered targetPlaceIds to process instance {}: {}",
-                    processInstanceId, orderedTargets);
-        } catch (Exception e) {
-            log.warn(
-                    "[TOUR_SERVICE] Could not synchronize targetPlaceIds for process {}: {}",
-                    processInstanceId,
-                    e.getMessage()
-            );
-        }
-
-        return response;
-    }*/
     public TourResponse calculateAndSyncTour(Participant participant, String processInstanceId) {
         TourResponse response = calculateTour(participant);
 
@@ -224,26 +95,88 @@ public class ParticipantTourService {
     }
 
     /**
-     * Sincronizza i campi targetPlaceIds e navigationPath nei Data Object di Camunda.
+     * Synchronizes tour target places and navigation path in a fully generic way.
+     * Dynamically inspects all process variables (top-level or nested Maps) and updates
+     * any field matching target place IDs or navigation paths without relying on hardcoded variable names.
+     *
+     * @param processInstanceId active process instance ID
+     * @param targetPlaceIds    calculated target place IDs
+     * @param navigationPath    calculated navigation path
      */
     public void syncProcessVariables(String processInstanceId, List<String> targetPlaceIds, List<String> navigationPath) {
-        if (processVariableService.variableExists(processInstanceId, "Tour_settings")) {
-            processVariableService.setNestedField(processInstanceId, "Tour_settings", "targetPlaceIds", targetPlaceIds);
-            processVariableService.setNestedField(processInstanceId, "Tour_settings", "navigationPath", navigationPath);
+        if (processInstanceId == null || processInstanceId.isBlank()) {
+            return;
         }
 
-        if (processVariableService.variableExists(processInstanceId, "Guided_Tour_Settings")) {
-            processVariableService.setNestedField(processInstanceId, "Guided_Tour_Settings", "targetPlaceIds", targetPlaceIds);
-            processVariableService.setNestedField(processInstanceId, "Guided_Tour_Settings", "navigationPath", navigationPath);
-        }
+        try {
+            Map<String, Object> variables = runtimeService.getVariables(processInstanceId);
+            if (variables == null || variables.isEmpty()) {
+                return;
+            }
 
-        if (processVariableService.variableExists(processInstanceId, "targetPlaceIds")) {
-            processVariableService.setVariable(processInstanceId, "targetPlaceIds", targetPlaceIds);
-        }
+            for (Map.Entry<String, Object> entry : variables.entrySet()) {
+                String varName = entry.getKey();
+                Object varValue = entry.getValue();
 
-        if (processVariableService.variableExists(processInstanceId, "navigationPath")) {
-            processVariableService.setVariable(processInstanceId, "navigationPath", navigationPath);
+                if (varValue instanceof Map<?, ?> nestedMap) {
+                    String existingTargetKey = findMatchingKey(nestedMap.keySet(), this::isTargetPlacesKey);
+                    String existingPathKey = findMatchingKey(nestedMap.keySet(), this::isNavigationPathKey);
+
+                    boolean isTourContainer = isTourContainerKey(varName)
+                            || existingTargetKey != null
+                            || existingPathKey != null;
+
+                    if (isTourContainer) {
+                        String keyForTargets = (existingTargetKey != null) ? existingTargetKey : "targetPlaceIds";
+                        String keyForPath = (existingPathKey != null) ? existingPathKey : "navigationPath";
+
+                        processVariableService.setNestedField(processInstanceId, varName, keyForTargets, targetPlaceIds);
+                        processVariableService.setNestedField(processInstanceId, varName, keyForPath, navigationPath);
+                    }
+                } else {
+                    if (isTargetPlacesKey(varName)) {
+                        processVariableService.setVariable(processInstanceId, varName, targetPlaceIds);
+                    } else if (isNavigationPathKey(varName)) {
+                        processVariableService.setVariable(processInstanceId, varName, navigationPath);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[TOUR_SERVICE] Failed to dynamically sync process variables for instance {}: {}",
+                    processInstanceId, e.getMessage());
         }
+    }
+
+    private String findMatchingKey(Set<?> keys, java.util.function.Predicate<String> predicate) {
+        for (Object keyObj : keys) {
+            if (keyObj instanceof String keyStr && predicate.test(keyStr)) {
+                return keyStr;
+            }
+        }
+        return null;
+    }
+
+    private boolean isTourContainerKey(String varName) {
+        if (varName == null || varName.isBlank()) return false;
+        String normalized = varName.toLowerCase();
+        return normalized.contains("tour") || normalized.contains("route")
+                || normalized.contains("path") || normalized.contains("navigation");
+    }
+
+    private boolean isTargetPlacesKey(String key) {
+        if (key == null || key.isBlank()) return false;
+        String normalized = key.toLowerCase().replaceAll("[_-]", "");
+        return normalized.equals("targetplaceids") || normalized.equals("targetplaces")
+                || normalized.equals("targetplaceid") || normalized.equals("targetids")
+                || normalized.equals("destinations") || normalized.equals("targets");
+    }
+
+    private boolean isNavigationPathKey(String key) {
+        if (key == null || key.isBlank()) return false;
+        String normalized = key.toLowerCase().replaceAll("[_-]", "");
+        return normalized.equals("navigationpath") || normalized.equals("path")
+                || normalized.equals("waypoints") || normalized.equals("route")
+                || normalized.equals("navigation");
     }
 
     private String findProcessInstanceIdForParticipant(String participantId) {

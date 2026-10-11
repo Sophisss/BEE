@@ -1,0 +1,3244 @@
+{
+  "physicalPlaces": [
+    {
+      "id": "Place_1",
+      "name": "S1",
+      "coordinates": [
+        [
+          13.068069832926453,
+          43.13604011324918
+        ],
+        [
+          13.068018405355968,
+          43.13608804128134
+        ],
+        [
+          13.067996086879711,
+          43.13607750638465
+        ],
+        [
+          13.068045445974368,
+          43.13602729593842
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "accessible": "false"
+      }
+    },
+    {
+      "id": "Place_2",
+      "name": "S2",
+      "coordinates": [
+        [
+          13.067996086879711,
+          43.13607750638465
+        ],
+        [
+          13.0679688019382,
+          43.13606658809951
+        ],
+        [
+          13.068020228262501,
+          43.13601404199352
+        ],
+        [
+          13.068045445974368,
+          43.13602729593842
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "accessible": "false"
+      }
+    },
+    {
+      "id": "Place_3",
+      "name": "H1",
+      "coordinates": [
+        [
+          13.068020228262501,
+          43.13601404199352
+        ],
+        [
+          13.068058546384378,
+          43.13597095305843
+        ],
+        [
+          13.068110135099099,
+          43.136003270474674
+        ],
+        [
+          13.068069832926453,
+          43.13604011324918
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "zone": "museum_hall"
+      }
+    },
+    {
+      "id": "Place_4",
+      "name": "C1",
+      "coordinates": [
+        [
+          13.068002557417714,
+          43.13603209761692
+        ],
+        [
+          13.0679497482441,
+          43.13600205210369
+        ],
+        [
+          13.067910126100116,
+          43.13603409666379
+        ],
+        [
+          13.0679688019382,
+          43.13606658809951
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_5",
+      "name": "EN1",
+      "coordinates": [
+        [
+          13.067924103524573,
+          43.13602279237034
+        ],
+        [
+          13.067905720416789,
+          43.13601147683772
+        ],
+        [
+          13.067919395116393,
+          43.135999382506924
+        ],
+        [
+          13.067940265793874,
+          43.13600972107304
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_6",
+      "name": "A1",
+      "coordinates": [
+        [
+          13.067905720416789,
+          43.13601147683772
+        ],
+        [
+          13.067888215826382,
+          43.136023559613164
+        ],
+        [
+          13.067868153631798,
+          43.136010417257495
+        ],
+        [
+          13.067880432686989,
+          43.13599681090105
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Renaissance",
+        "typo": "Panel paintings",
+        "zone": "R1",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_7",
+      "name": "A2",
+      "coordinates": [
+        [
+          13.067868153631798,
+          43.136010417257495
+        ],
+        [
+          13.06784293528203,
+          43.13599705054838
+        ],
+        [
+          13.067856611669251,
+          43.135982676807544
+        ],
+        [
+          13.067880432686989,
+          43.13599681090105
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Renaissance",
+        "zone": "R1",
+        "typo": "Panel paintings",
+        "historical_period": "Renaissance",
+        "importance": "1",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_8",
+      "name": "A3",
+      "coordinates": [
+        [
+          13.06784293528203,
+          43.13599705054838
+        ],
+        [
+          13.067814747601709,
+          43.13598237597361
+        ],
+        [
+          13.067826177777693,
+          43.135968639589464
+        ],
+        [
+          13.067856611669251,
+          43.135982676807544
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Baroque",
+        "zone": "R1",
+        "typo": "Panel paintings",
+        "historical_period": "Baroque",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_9",
+      "name": "A4",
+      "coordinates": [
+        [
+          13.067742089829611,
+          43.13593544331502
+        ],
+        [
+          13.067758812400651,
+          43.13592299948769
+        ],
+        [
+          13.067778717395381,
+          43.13593556058936
+        ],
+        [
+          13.067758319841111,
+          43.135946041344255
+        ]
+      ],
+      "attributes": {
+        "tags": "Frescoes, Romanticism",
+        "zone": "R1",
+        "typo": "Frescoes",
+        "historical_period": "Romanticism",
+        "importance": "3",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_10",
+      "name": "EN2",
+      "coordinates": [
+        [
+          13.06777814099592,
+          43.13596502958154
+        ],
+        [
+          13.067791649703295,
+          43.13595176229066
+        ],
+        [
+          13.067810978298565,
+          43.13596177904455
+        ],
+        [
+          13.067795094126744,
+          43.135976025318286
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_11",
+      "name": "EN3",
+      "coordinates": [
+        [
+          13.067809140806949,
+          43.13584461682919
+        ],
+        [
+          13.067823599700102,
+          43.135830082437394
+        ],
+        [
+          13.067852073833492,
+          43.13583984681608
+        ],
+        [
+          13.06783369193067,
+          43.13585469988621
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_12",
+      "name": "A5",
+      "coordinates": [
+        [
+          13.067700980321366,
+          43.13589836676974
+        ],
+        [
+          13.06771607500059,
+          43.13588532381547
+        ],
+        [
+          13.0677328639449,
+          43.135894986207575
+        ],
+        [
+          13.067715243588035,
+          43.135907764017674
+        ]
+      ],
+      "attributes": {
+        "tags": "Banners, Renaissance",
+        "zone": "R1",
+        "typo": "banners",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_13",
+      "name": "EN4",
+      "coordinates": [
+        [
+          13.067782061025877,
+          43.13588178445721
+        ],
+        [
+          13.067792974150322,
+          43.13587027197221
+        ],
+        [
+          13.06780270256747,
+          43.1358768862826
+        ],
+        [
+          13.067792116964696,
+          43.1358883539489
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_14",
+      "name": "A6",
+      "coordinates": [
+        [
+          13.067741583953055,
+          43.135867291610765
+        ],
+        [
+          13.067752000677464,
+          43.13587257820416
+        ],
+        [
+          13.067768179736285,
+          43.135857889279066
+        ],
+        [
+          13.067755964201442,
+          43.13585396214788
+        ]
+      ],
+      "attributes": {
+        "tags": "Banners, Realism",
+        "zone": "R2",
+        "typo": "Banners",
+        "historical_period": "Realism",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_15",
+      "name": "A7",
+      "coordinates": [
+        [
+          13.067752000677464,
+          43.13587257820416
+        ],
+        [
+          13.067764520705111,
+          43.13587914582945
+        ],
+        [
+          13.067780313390708,
+          43.135861775327356
+        ],
+        [
+          13.067768179736285,
+          43.135857889279066
+        ]
+      ],
+      "attributes": {
+        "tags": "Banners, Renaissance",
+        "zone": "R2",
+        "typo": "Banners",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_16",
+      "name": "A8",
+      "coordinates": [
+        [
+          13.067748108798854,
+          43.135907367749496
+        ],
+        [
+          13.067759067981033,
+          43.13589536227738
+        ],
+        [
+          13.067773576167575,
+          43.13590144064315
+        ],
+        [
+          13.067760662090418,
+          43.135913475992396
+        ]
+      ],
+      "attributes": {
+        "tags": "Frescoes, Baroque",
+        "zone": "R2",
+        "typo": "Frescoes",
+        "historical_period": "Baroque",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_17",
+      "name": "A9",
+      "coordinates": [
+        [
+          13.067858516866066,
+          43.13588140350885
+        ],
+        [
+          13.067872446772157,
+          43.13586712914744
+        ],
+        [
+          13.06789343886429,
+          43.13587667339965
+        ],
+        [
+          13.06787312740313,
+          43.13589075541728
+        ]
+      ],
+      "attributes": {
+        "tags": "Frescoes, Neoclassicism",
+        "zone": "R1",
+        "typo": "Frescoes",
+        "historical_period": "Neoclassicism",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_18",
+      "name": "A10",
+      "coordinates": [
+        [
+          13.06787312740313,
+          43.13589075541728
+        ],
+        [
+          13.067897509856317,
+          43.13590298497749
+        ],
+        [
+          13.067914351634768,
+          43.135892712445866
+        ],
+        [
+          13.06789343886429,
+          43.13587667339965
+        ]
+      ],
+      "attributes": {
+        "tags": "Frescoes, Neoclassicism",
+        "zone": "R1",
+        "typo": "Frescoes",
+        "historical_period": "Neoclassicism",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_19",
+      "name": "A11",
+      "coordinates": [
+        [
+          13.067943462682084,
+          43.13592682411621
+        ],
+        [
+          13.06795570636332,
+          43.13591508008295
+        ],
+        [
+          13.06797393499135,
+          43.135923647681324
+        ],
+        [
+          13.067960647334786,
+          43.13593463355164
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Renaissance",
+        "zone": "R1",
+        "typo": "Panel paintings",
+        "importance": "4",
+        "visit_time": "6",
+        "historical_period": "Renaissance",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_20",
+      "name": "A12",
+      "coordinates": [
+        [
+          13.06793284125663,
+          43.13596875453558
+        ],
+        [
+          13.067950857507324,
+          43.135951117021904
+        ],
+        [
+          13.067966563194979,
+          43.13595887790203
+        ],
+        [
+          13.067945082379103,
+          43.1359775891633
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Baroque",
+        "zone": "R1",
+        "typo": "Panel paintings",
+        "historical_period": "Baroque",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_21",
+      "name": "A13",
+      "coordinates": [
+        [
+          13.067869112703892,
+          43.135963817152685
+        ],
+        [
+          13.067882190541884,
+          43.13595036446296
+        ],
+        [
+          13.067898272367707,
+          43.13595652685592
+        ],
+        [
+          13.06788242850685,
+          43.135971365148606
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Renaissance",
+        "zone": "R1",
+        "typo": "Panel paintings",
+        "historical_period": "Renaissance",
+        "importance": "5",
+        "visit_time": "6",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_22",
+      "name": "A14",
+      "coordinates": [
+        [
+          13.067882190541884,
+          43.13595036446296
+        ],
+        [
+          13.067897013456282,
+          43.135934247001416
+        ],
+        [
+          13.067912117834618,
+          43.13594251768174
+        ],
+        [
+          13.067898272367707,
+          43.13595652685592
+        ]
+      ],
+      "attributes": {
+        "tags": "Panel paintings, Renaissance",
+        "zone": "R1",
+        "typo": "Panel paintings",
+        "historical_period": "Renaissance",
+        "importance": "5",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_23",
+      "name": "A15",
+      "coordinates": [
+        [
+          13.067791237804043,
+          43.13599326310927
+        ],
+        [
+          13.06780119868289,
+          43.135983334792485
+        ],
+        [
+          13.067819442753716,
+          43.13599215393904
+        ],
+        [
+          13.067810862406866,
+          43.13600365903787
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_24",
+      "name": "A16",
+      "coordinates": [
+        [
+          13.067744513296217,
+          43.13596953228344
+        ],
+        [
+          13.067755396593302,
+          43.13595905728394
+        ],
+        [
+          13.067738480433297,
+          43.13595094745989
+        ],
+        [
+          13.067729188152908,
+          43.13596144279185
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_25",
+      "name": "A17",
+      "coordinates": [
+        [
+          13.067700116501532,
+          43.135949198990744
+        ],
+        [
+          13.067710984321803,
+          43.13593795592621
+        ],
+        [
+          13.067730150810869,
+          43.135946555955854
+        ],
+        [
+          13.06771721838333,
+          43.13595614316901
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_26",
+      "name": "EN5",
+      "coordinates": [
+        [
+          13.067663430256632,
+          43.13606792083715
+        ],
+        [
+          13.067672874209821,
+          43.13605685399642
+        ],
+        [
+          13.067690666357617,
+          43.1360655014484
+        ],
+        [
+          13.067678241569647,
+          43.1360755336658
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_27",
+      "name": "A18",
+      "coordinates": [
+        [
+          13.067675474314926,
+          43.13597962776868
+        ],
+        [
+          13.06768863270398,
+          43.13596451277775
+        ],
+        [
+          13.06770254636166,
+          43.13597028001357
+        ],
+        [
+          13.067687905293624,
+          43.13598589424271
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_28",
+      "name": "A19",
+      "coordinates": [
+        [
+          13.067654565136367,
+          43.13600479531593
+        ],
+        [
+          13.067666931112434,
+          43.135991193862935
+        ],
+        [
+          13.067678411814624,
+          43.135996723901
+        ],
+        [
+          13.067661733997586,
+          43.13601043152582
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_29",
+      "name": "A20",
+      "coordinates": [
+        [
+          13.067629823898137,
+          43.13603554032636
+        ],
+        [
+          13.067641332458594,
+          43.136023657980274
+        ],
+        [
+          13.067652593389994,
+          43.136028919194246
+        ],
+        [
+          13.067643044194455,
+          43.13604132336846
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_30",
+      "name": "A21",
+      "coordinates": [
+        [
+          13.06776957645222,
+          43.13601794722453
+        ],
+        [
+          13.0677811840643,
+          43.13600736606023
+        ],
+        [
+          13.067792856679008,
+          43.136015349372656
+        ],
+        [
+          13.067779781864761,
+          43.13602681606412
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_31",
+      "name": "A22",
+      "coordinates": [
+        [
+          13.067744073754639,
+          43.136040973223345
+        ],
+        [
+          13.067756049714943,
+          43.136030317515946
+        ],
+        [
+          13.0677695950244,
+          43.13603871422259
+        ],
+        [
+          13.067755263492682,
+          43.13604861994034
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "4",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_32",
+      "name": "A23",
+      "coordinates": [
+        [
+          13.067714992817175,
+          43.13606700368325
+        ],
+        [
+          13.067730194145955,
+          43.13605450689522
+        ],
+        [
+          13.067740176692343,
+          43.13606235466153
+        ],
+        [
+          13.067724582252435,
+          43.1360750999379
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "4",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_33",
+      "name": "A24",
+      "coordinates": [
+        [
+          13.067706920109893,
+          43.136020732573456
+        ],
+        [
+          13.067721712850727,
+          43.13600355060578
+        ],
+        [
+          13.067735459358795,
+          43.13601115214743
+        ],
+        [
+          13.067720093975762,
+          43.13602694030919
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Renaissance",
+        "zone": "R3",
+        "typo": "Sculptures",
+        "historical_period": "Renaissance",
+        "importance": "5",
+        "visit_time": "6",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_34",
+      "name": "A25",
+      "coordinates": [
+        [
+          13.067618662018361,
+          43.1360673764182
+        ],
+        [
+          13.067625533724714,
+          43.13605910847855
+        ],
+        [
+          13.067640815532938,
+          43.13606403761651
+        ],
+        [
+          13.067632501387324,
+          43.13607383263917
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_35",
+      "name": "A26",
+      "coordinates": [
+        [
+          13.067608815667954,
+          43.13608399587716
+        ],
+        [
+          13.067614758765341,
+          43.136074939548934
+        ],
+        [
+          13.067627103073866,
+          43.13608007651354
+        ],
+        [
+          13.067619448240618,
+          43.136087786477646
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_36",
+      "name": "A27",
+      "coordinates": [
+        [
+          13.067596019436397,
+          43.136102607768265
+        ],
+        [
+          13.067604884556662,
+          43.136091719394756
+        ],
+        [
+          13.06761882297725,
+          43.13609723361071
+        ],
+        [
+          13.067609976429162,
+          43.136107487204725
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_37",
+      "name": "A28",
+      "coordinates": [
+        [
+          13.067624054141094,
+          43.13611352324784
+        ],
+        [
+          13.067634175978828,
+          43.136102903697065
+        ],
+        [
+          13.067649423738056,
+          43.13610848116397
+        ],
+        [
+          13.067638333051633,
+          43.136121059264866
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "4",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_38",
+      "name": "A29",
+      "coordinates": [
+        [
+          13.06765680617934,
+          43.136128050862595
+        ],
+        [
+          13.067666256323253,
+          43.136117824379966
+        ],
+        [
+          13.067679937828693,
+          43.1361246804382
+        ],
+        [
+          13.067668707850926,
+          43.1361347103869
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_39",
+      "name": "A30",
+      "coordinates": [
+        [
+          13.067674672615853,
+          43.13610951352618
+        ],
+        [
+          13.067682472931171,
+          43.1361003103668
+        ],
+        [
+          13.067697024233674,
+          43.13610745331977
+        ],
+        [
+          13.067687601948027,
+          43.13611588841874
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_40",
+      "name": "A31",
+      "coordinates": [
+        [
+          13.067690056571063,
+          43.1360939196596
+        ],
+        [
+          13.067696525880194,
+          43.136085674313506
+        ],
+        [
+          13.067709798797688,
+          43.13609321711098
+        ],
+        [
+          13.06770129583492,
+          43.13609973884019
+        ]
+      ],
+      "attributes": {
+        "tags": "Sculptures, Middle Ages",
+        "zone": "R4",
+        "typo": "Sculptures",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_41",
+      "name": "A32",
+      "coordinates": [
+        [
+          13.06785880546976,
+          43.135833843022056
+        ],
+        [
+          13.06786734882817,
+          43.13582583896911
+        ],
+        [
+          13.067881064120671,
+          43.13583301757106
+        ],
+        [
+          13.06787179572477,
+          43.13584063006303
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Rococo",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Rococo",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_42",
+      "name": "A33",
+      "coordinates": [
+        [
+          13.06786734882817,
+          43.13582583896911
+        ],
+        [
+          13.067874393775773,
+          43.13582020015019
+        ],
+        [
+          13.067889588144752,
+          43.13582601005618
+        ],
+        [
+          13.067881064120671,
+          43.13583301757106
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Rococo",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Rococo",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_43",
+      "name": "A34",
+      "coordinates": [
+        [
+          13.067808574872515,
+          43.13582780029728
+        ],
+        [
+          13.067814520179926,
+          43.135818095955216
+        ],
+        [
+          13.06780231054861,
+          43.13581479238658
+        ],
+        [
+          13.067799583701301,
+          43.1358207096153
+        ],
+        [
+          13.067795889133247,
+          43.13582605238699
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Baroque",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Baroque",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_44",
+      "name": "A35",
+      "coordinates": [
+        [
+          13.067787717960746,
+          43.135807862476156
+        ],
+        [
+          13.067790549921327,
+          43.135797578126585
+        ],
+        [
+          13.067801106350702,
+          43.13580305616213
+        ],
+        [
+          13.067797711394137,
+          43.13580862266741
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Baroque",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Baroque",
+        "importance": "2",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_45",
+      "name": "A36",
+      "coordinates": [
+        [
+          13.067742470787845,
+          43.13580736332503
+        ],
+        [
+          13.06774774181039,
+          43.13579945980436
+        ],
+        [
+          13.067758100179319,
+          43.13580291858693
+        ],
+        [
+          13.067753592862928,
+          43.13581207263053
+        ]
+      ],
+      "attributes": {
+        "tags": "Temporary exhibition of works from Camerino churches",
+        "zone": "R6",
+        "typo": "Temporary exhibition of works from Camerino churches",
+        "importance": 3,
+        "visit_time": 4,
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_46",
+      "name": "A37",
+      "coordinates": [
+        [
+          13.067794182878357,
+          43.13579239055315
+        ],
+        [
+          13.06779891737316,
+          43.13578543947477
+        ],
+        [
+          13.067810522806571,
+          43.13579143458148
+        ],
+        [
+          13.067804285067371,
+          43.13579660776372
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Classicism",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Classicism",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_47",
+      "name": "EN6",
+      "coordinates": [
+        [
+          13.067807961007441,
+          43.13577640183698
+        ],
+        [
+          13.067813439874067,
+          43.135770244460474
+        ],
+        [
+          13.067822176575811,
+          43.13577441757795
+        ],
+        [
+          13.06781547722941,
+          43.13578134925595
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_48",
+      "name": "A38",
+      "coordinates": [
+        [
+          13.067778819333965,
+          43.13578556293976
+        ],
+        [
+          13.067784423873755,
+          43.13577855541939
+        ],
+        [
+          13.06779093954399,
+          43.13577948493452
+        ],
+        [
+          13.06778628480331,
+          43.135788755391474
+        ]
+      ],
+      "attributes": {
+        "tags": "Temporary exhibition of works from Camerino churches",
+        "zone": "R6",
+        "typo": "Temporary exhibition of works from Camerino churches",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_49",
+      "name": "A39",
+      "coordinates": [
+        [
+          13.067783536911227,
+          43.13576558101019
+        ],
+        [
+          13.067789119699892,
+          43.13575852233777
+        ],
+        [
+          13.067798305924878,
+          43.135761474915995
+        ],
+        [
+          13.06779258779588,
+          43.1357686817461
+        ]
+      ],
+      "attributes": {
+        "tags": "Temporary exhibition of works from Camerino churches",
+        "zone": "R6",
+        "typo": "Temporary exhibition of works from Camerino churches",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_50",
+      "name": "A40",
+      "coordinates": [
+        [
+          13.067755738973895,
+          43.13577142972463
+        ],
+        [
+          13.067762155555675,
+          43.13576418585538
+        ],
+        [
+          13.06777141428441,
+          43.13576829018558
+        ],
+        [
+          13.067763877062681,
+          43.1357760944622
+        ]
+      ],
+      "attributes": {
+        "tags": "Temporary exhibition of works from Camerino churches",
+        "zone": "R6",
+        "typo": "Temporary exhibition of works from Camerino churches",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_51",
+      "name": "A41",
+      "coordinates": [
+        [
+          13.067824433859194,
+          43.135766185988814
+        ],
+        [
+          13.067830258327021,
+          43.135759998626924
+        ],
+        [
+          13.06783965481288,
+          43.13576340626187
+        ],
+        [
+          13.06783182682479,
+          43.13576936080369
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Classicism",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Classicism",
+        "importance": "4",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_52",
+      "name": "A42",
+      "coordinates": [
+        [
+          13.0678406724505,
+          43.135751580314064
+        ],
+        [
+          13.067849051842318,
+          43.13574275664919
+        ],
+        [
+          13.067856964047342,
+          43.13574668728455
+        ],
+        [
+          13.067849508451298,
+          43.13575513010832
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Classicism",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Classicism",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_53",
+      "name": "A43",
+      "coordinates": [
+        [
+          13.067859247092244,
+          43.13575711150841
+        ],
+        [
+          13.067866436479965,
+          43.13575071055655
+        ],
+        [
+          13.067875032716977,
+          43.13575468622321
+        ],
+        [
+          13.067867474868725,
+          43.135760878741706
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Baroque",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Baroque",
+        "importance": "3",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_54",
+      "name": "A44",
+      "coordinates": [
+        [
+          13.067875205487942,
+          43.13576404512165
+        ],
+        [
+          13.067882065200452,
+          43.13575789120222
+        ],
+        [
+          13.067889564870725,
+          43.13576112448675
+        ],
+        [
+          13.067882458342549,
+          43.135767717144375
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Baroque",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Baroque",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_55",
+      "name": "EN7",
+      "coordinates": [
+        [
+          13.067899659631415,
+          43.1357665990688
+        ],
+        [
+          13.067906914248992,
+          43.13575949819483
+        ],
+        [
+          13.067916525956168,
+          43.13576411202607
+        ],
+        [
+          13.067908585543638,
+          43.135770879664136
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_56",
+      "name": "A45",
+      "coordinates": [
+        [
+          13.067864818074392,
+          43.13581134909481
+        ],
+        [
+          13.06787062882033,
+          43.135805732988274
+        ],
+        [
+          13.067878648566467,
+          43.13580962373433
+        ],
+        [
+          13.06787274614614,
+          43.13581499023576
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Renaissance",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_57",
+      "name": "A46",
+      "coordinates": [
+        [
+          13.06787062882033,
+          43.135805732988274
+        ],
+        [
+          13.067876344365938,
+          43.135799810665105
+        ],
+        [
+          13.067882849721673,
+          43.13580331799801
+        ],
+        [
+          13.067878648566467,
+          43.13580962373433
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Renaissance",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "4",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_58",
+      "name": "A47",
+      "coordinates": [
+        [
+          13.067893290024296,
+          43.135805330275474
+        ],
+        [
+          13.067898288041507,
+          43.135799827391196
+        ],
+        [
+          13.067907374383909,
+          43.13580362678738
+        ],
+        [
+          13.067900519960306,
+          43.13580976526276
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Rococo",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Rococo",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_59",
+      "name": "A48",
+      "coordinates": [
+        [
+          13.067888357236939,
+          43.13579068207761
+        ],
+        [
+          13.067891870834224,
+          43.13578665752161
+        ],
+        [
+          13.067899243570723,
+          43.135789602601136
+        ],
+        [
+          13.067895123512091,
+          43.13579444802215
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Renaissance",
+        "zone": "R5",
+        "typo": "Canvas paintingsCanvas paintings",
+        "historical_period": "Renaissance",
+        "importance": "4",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_60",
+      "name": "A49",
+      "coordinates": [
+        [
+          13.067891870834224,
+          43.13578665752161
+        ],
+        [
+          13.067898436130907,
+          43.135780863858855
+        ],
+        [
+          13.067906059209012,
+          43.135784968185845
+        ],
+        [
+          13.067899243570723,
+          43.135789602601136
+        ]
+      ],
+      "attributes": {
+        "tags": "Canvas paintings, Renaissance",
+        "zone": "R5",
+        "typo": "Canvas paintings",
+        "historical_period": "Renaissance",
+        "importance": "4",
+        "visit_time": "5",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_61",
+      "name": "A50",
+      "coordinates": [
+        [
+          13.067920278008764,
+          43.13575419833376
+        ],
+        [
+          13.067928886626483,
+          43.13574716606672
+        ],
+        [
+          13.067935762985284,
+          43.13575052694631
+        ],
+        [
+          13.06792856246107,
+          43.13575845968606
+        ]
+      ],
+      "attributes": {
+        "tags": " Goldsmithing and liturgical furnishings, Renaissance",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_62",
+      "name": "A51",
+      "coordinates": [
+        [
+          13.067896822615173,
+          43.135746899916995
+        ],
+        [
+          13.06790426828948,
+          43.135740648355096
+        ],
+        [
+          13.067895878483412,
+          43.135736253926666
+        ],
+        [
+          13.067888787365026,
+          43.135742700665446
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Renaissance",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Renaissance",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_63",
+      "name": "A52",
+      "coordinates": [
+        [
+          13.067882164260455,
+          43.13573613711645
+        ],
+        [
+          13.06788996449068,
+          43.13572869527238
+        ],
+        [
+          13.06787925487588,
+          43.13572365025456
+        ],
+        [
+          13.067871219625733,
+          43.135731470623426
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Renaissance",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Renaissance",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_64",
+      "name": "A53",
+      "coordinates": [
+        [
+          13.067882391176243,
+          43.13572044610615
+        ],
+        [
+          13.067887545406293,
+          43.135715086143676
+        ],
+        [
+          13.067896743599857,
+          43.1357200868039
+        ],
+        [
+          13.067892182997717,
+          43.13572511999308
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings,  Baroque",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Baroque",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_65",
+      "name": "EN8",
+      "coordinates": [
+        [
+          13.067889620593661,
+          43.135708790913526
+        ],
+        [
+          13.067894995661396,
+          43.13570375920156
+        ],
+        [
+          13.067886986749688,
+          43.13569943278651
+        ],
+        [
+          13.067880673628292,
+          43.13570533687914
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_66",
+      "name": "A54",
+      "coordinates": [
+        [
+          13.067901420214655,
+          43.135704754306516
+        ],
+        [
+          13.067906953313033,
+          43.135699080877146
+        ],
+        [
+          13.067914174097579,
+          43.135703076083416
+        ],
+        [
+          13.067907899470827,
+          43.135709743138705
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings,  Baroque",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Baroque",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_67",
+      "name": "A55",
+      "coordinates": [
+        [
+          13.067917486662884,
+          43.13571252440505
+        ],
+        [
+          13.067922815131842,
+          43.135707815030514
+        ],
+        [
+          13.067929952849006,
+          43.135711382917776
+        ],
+        [
+          13.067923643779677,
+          43.13571671182979
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_68",
+      "name": "A56",
+      "coordinates": [
+        [
+          13.067932560354539,
+          43.135719850919514
+        ],
+        [
+          13.06793873773167,
+          43.13571503212839
+        ],
+        [
+          13.067945524944983,
+          43.135719963293894
+        ],
+        [
+          13.067938468269174,
+          43.13572394371269
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_69",
+      "name": "EN9",
+      "coordinates": [
+        [
+          13.067947747504087,
+          43.13573259358171
+        ],
+        [
+          13.067956412850757,
+          43.135724339980186
+        ],
+        [
+          13.067964500777785,
+          43.135729345075475
+        ],
+        [
+          13.067955857717491,
+          43.135736513376656
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "Place_70",
+      "name": "E1",
+      "coordinates": [
+        [
+          13.067853595686225,
+          43.13569519508786
+        ],
+        [
+          13.067863788662395,
+          43.13568698288242
+        ],
+        [
+          13.067874086992328,
+          43.13569314573314
+        ],
+        [
+          13.067864062176964,
+          43.13570207210674
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "accessible": "true"
+      }
+    },
+    {
+      "id": "Place_71",
+      "name": "A57",
+      "coordinates": [
+        [
+          13.067973568382651,
+          43.13569909238382
+        ],
+        [
+          13.067982445984653,
+          43.13569204211785
+        ],
+        [
+          13.067970964634974,
+          43.13568573189039
+        ],
+        [
+          13.067961066468557,
+          43.13569414605735
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
+        "zone": "R7",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_72",
+      "name": "A58",
+      "coordinates": [
+        [
+          13.067954591990457,
+          43.13568744750842
+        ],
+        [
+          13.067960004470969,
+          43.13568144284514
+        ],
+        [
+          13.067952590114103,
+          43.13567790497936
+        ],
+        [
+          13.067946734952873,
+          43.135683481534215
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Contemporary Era",
+        "zone": "R8",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Contemporary Era",
+        "importance": "2",
+        "visit_time": "2",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_73",
+      "name": "A59",
+      "coordinates": [
+        [
+          13.06793149190743,
+          43.1356881350288
+        ],
+        [
+          13.067936263264142,
+          43.135682696933344
+        ],
+        [
+          13.06792825139734,
+          43.13567866889102
+        ],
+        [
+          13.06792207567421,
+          43.13568515577376
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Contemporary Era",
+        "zone": "R8",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Contemporary Era",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_74",
+      "name": "A60",
+      "coordinates": [
+        [
+          13.067927483793337,
+          43.135701832915885
+        ],
+        [
+          13.06793445983087,
+          43.135696256362706
+        ],
+        [
+          13.067941270135723,
+          43.13570004727305
+        ],
+        [
+          13.067934414036314,
+          43.13570497131829
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Contemporary Era",
+        "zone": "R8",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "historical_period": "Contemporary Era",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "Place_75",
+      "name": "A61",
+      "coordinates": [
+        [
+          13.067948287606427,
+          43.13570902959705
+        ],
+        [
+          13.067952960831946,
+          43.13570524982765
+        ],
+        [
+          13.06796066522101,
+          43.13570944179085
+        ],
+        [
+          13.067952539958162,
+          43.135716326540745
+        ],
+        [
+          13.067944586970073,
+          43.13571336956781
+        ]
+      ],
+      "attributes": {
+        "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
+        "typo": "Goldsmithing and liturgical furnishings",
+        "zone": "R8",
+        "historical_period": "Middle Ages",
+        "importance": "3",
+        "visit_time": "3",
+        "presence_count": 0,
+        "occupied": "false",
+        "status": "",
+        "audio": "off",
+        "lights": "off",
+        "is_accessible": "true"
+      }
+    }
+  ],
+  "logicalPlaces": [
+    {
+      "id": "LogicalPlace_1",
+      "name": "Room1",
+      "contains": [
+        "Place_6",
+        "Place_7",
+        "Place_8",
+        "Place_9",
+        "Place_12",
+        "Place_17",
+        "Place_19",
+        "Place_20",
+        "Place_21",
+        "Place_22"
+      ]
+    },
+    {
+      "id": "LogicalPlace_2",
+      "name": "Room2",
+      "contains": [
+        "Place_14",
+        "Place_15",
+        "Place_16"
+      ]
+    },
+    {
+      "id": "LogicalPlace_3",
+      "name": "Room3",
+      "contains": [
+        "Place_23",
+        "Place_24",
+        "Place_25",
+        "Place_27",
+        "Place_28",
+        "Place_29",
+        "Place_30",
+        "Place_31",
+        "Place_32",
+        "Place_33"
+      ]
+    },
+    {
+      "id": "LogicalPlace_4",
+      "name": "Room4",
+      "contains": [
+        "Place_34",
+        "Place_35",
+        "Place_36",
+        "Place_37",
+        "Place_38",
+        "Place_39",
+        "Place_40"
+      ]
+    },
+    {
+      "id": "LogicalPlace_5",
+      "name": "Room5",
+      "contains": [
+        "Place_41",
+        "Place_42",
+        "Place_43",
+        "Place_44",
+        "Place_46",
+        "Place_51",
+        "Place_52",
+        "Place_53",
+        "Place_54",
+        "Place_56",
+        "Place_57",
+        "Place_58",
+        "Place_59",
+        "Place_60"
+      ]
+    },
+    {
+      "id": "LogicalPlace_6",
+      "name": "Room6",
+      "contains": [
+        "Place_45",
+        "Place_48",
+        "Place_49",
+        "Place_50"
+      ]
+    },
+    {
+      "id": "LogicalPlace_7",
+      "name": "Room7",
+      "contains": [
+        "Place_61",
+        "Place_62",
+        "Place_63",
+        "Place_64",
+        "Place_66",
+        "Place_67",
+        "Place_68",
+        "Place_71"
+      ]
+    },
+    {
+      "id": "LogicalPlace_8",
+      "name": "Room8",
+      "contains": [
+        "Place_72",
+        "Place_73",
+        "Place_74",
+        "Place_75"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "Edge_opfnd93uzp",
+      "name": "H1>S1",
+      "source": "Place_3",
+      "target": "Place_1",
+      "attributes": []
+    },
+    {
+      "id": "Edge_s8bnn87un7",
+      "name": "S1>S2",
+      "source": "Place_1",
+      "target": "Place_2",
+      "attributes": []
+    },
+    {
+      "id": "Edge_483aesvv19r",
+      "name": "S2>C1",
+      "source": "Place_2",
+      "target": "Place_4",
+      "attributes": []
+    },
+    {
+      "id": "Edge_zx8qloj5uwl",
+      "name": "C1>EN1",
+      "source": "Place_4",
+      "target": "Place_5",
+      "attributes": []
+    },
+    {
+      "id": "Edge_klx978recyh",
+      "name": "EN1>A1",
+      "source": "Place_5",
+      "target": "Place_6",
+      "attributes": []
+    },
+    {
+      "id": "Edge_9hdvrmmsjpv",
+      "name": "EN1>A12",
+      "source": "Place_5",
+      "target": "Place_20",
+      "attributes": []
+    },
+    {
+      "id": "Edge_2h0mgwimqk7",
+      "name": "A1>A2",
+      "source": "Place_6",
+      "target": "Place_7",
+      "attributes": []
+    },
+    {
+      "id": "Edge_17z75jp647g",
+      "name": "A2>A3",
+      "source": "Place_7",
+      "target": "Place_8",
+      "attributes": []
+    },
+    {
+      "id": "Edge_h8ciuvz6yan",
+      "name": "A12>A11",
+      "source": "Place_20",
+      "target": "Place_19",
+      "attributes": []
+    },
+    {
+      "id": "Edge_5jwnaqae3pe",
+      "name": "A12>A14",
+      "source": "Place_20",
+      "target": "Place_22",
+      "attributes": []
+    },
+    {
+      "id": "Edge_jg3o6o95w4r",
+      "name": "A14>A13",
+      "source": "Place_22",
+      "target": "Place_21",
+      "attributes": []
+    },
+    {
+      "id": "Edge_5q4y7yvxlou",
+      "name": "A1>A13",
+      "source": "Place_6",
+      "target": "Place_21",
+      "attributes": []
+    },
+    {
+      "id": "Edge_7rhzvbgrzo",
+      "name": "A13>A3",
+      "source": "Place_21",
+      "target": "Place_8",
+      "attributes": []
+    },
+    {
+      "id": "Edge_yohe4igmqp",
+      "name": "A3>EN2",
+      "source": "Place_8",
+      "target": "Place_10",
+      "attributes": []
+    },
+    {
+      "id": "Edge_xirwm4utij",
+      "name": "EN2>A4",
+      "source": "Place_10",
+      "target": "Place_9",
+      "attributes": []
+    },
+    {
+      "id": "Edge_pdpnqg41g8",
+      "name": "A4>A8",
+      "source": "Place_9",
+      "target": "Place_16",
+      "attributes": []
+    },
+    {
+      "id": "Edge_18naq5tr643",
+      "name": "A8>EN4",
+      "source": "Place_16",
+      "target": "Place_13",
+      "attributes": []
+    },
+    {
+      "id": "Edge_1d3oprrz9oj",
+      "name": "EN4>A7",
+      "source": "Place_13",
+      "target": "Place_15",
+      "attributes": []
+    },
+    {
+      "id": "Edge_3qbsrt5yeso",
+      "name": "A7>A6",
+      "source": "Place_15",
+      "target": "Place_14",
+      "attributes": []
+    },
+    {
+      "id": "Edge_n5pr0bb657r",
+      "name": "A6>A5",
+      "source": "Place_14",
+      "target": "Place_12",
+      "attributes": []
+    },
+    {
+      "id": "Edge_23hc9sc2u4m",
+      "name": "EN4>EN3",
+      "source": "Place_13",
+      "target": "Place_11",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ivwm9t26kk9",
+      "name": "A9>EN3",
+      "source": "Place_17",
+      "target": "Place_11",
+      "attributes": []
+    },
+    {
+      "id": "Edge_jqannw718ok",
+      "name": "A10>A9",
+      "source": "Place_18",
+      "target": "Place_17",
+      "attributes": []
+    },
+    {
+      "id": "Edge_5khghn919vb",
+      "name": "A11>A10",
+      "source": "Place_19",
+      "target": "Place_18",
+      "attributes": []
+    },
+    {
+      "id": "Edge_rq83tjq6yf",
+      "name": "A14>A10",
+      "source": "Place_22",
+      "target": "Place_18",
+      "attributes": []
+    },
+    {
+      "id": "Edge_fdj6l1c1ku9",
+      "name": "EN2>A15",
+      "source": "Place_10",
+      "target": "Place_23",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6b5fifjwisj",
+      "name": "EN2>A16",
+      "source": "Place_10",
+      "target": "Place_24",
+      "attributes": []
+    },
+    {
+      "id": "Edge_dig3vov9tgc",
+      "name": "A16>A17",
+      "source": "Place_24",
+      "target": "Place_25",
+      "attributes": []
+    },
+    {
+      "id": "Edge_40fsey0eu6e",
+      "name": "A15>A21",
+      "source": "Place_23",
+      "target": "Place_30",
+      "attributes": []
+    },
+    {
+      "id": "Edge_lcxphvyrear",
+      "name": "A21>A24",
+      "source": "Place_30",
+      "target": "Place_33",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6bx0vsonuh",
+      "name": "A21>A22",
+      "source": "Place_30",
+      "target": "Place_31",
+      "attributes": []
+    },
+    {
+      "id": "Edge_9qi4qodpxs",
+      "name": "A24>A22",
+      "source": "Place_33",
+      "target": "Place_31",
+      "attributes": []
+    },
+    {
+      "id": "Edge_qwxnacmqlxp",
+      "name": "A22>A23",
+      "source": "Place_31",
+      "target": "Place_32",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6pdvluxfx89",
+      "name": "A23>EN5",
+      "source": "Place_32",
+      "target": "Place_26",
+      "attributes": []
+    },
+    {
+      "id": "Edge_klcogh6g15k",
+      "name": "A17>A18",
+      "source": "Place_25",
+      "target": "Place_27",
+      "attributes": []
+    },
+    {
+      "id": "Edge_xhyhuk7adj",
+      "name": "A18>A19",
+      "source": "Place_27",
+      "target": "Place_28",
+      "attributes": []
+    },
+    {
+      "id": "Edge_v5q9l9966v",
+      "name": "A19>A20",
+      "source": "Place_28",
+      "target": "Place_29",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6b7lcf7ro4u",
+      "name": "A20>EN5",
+      "source": "Place_29",
+      "target": "Place_26",
+      "attributes": []
+    },
+    {
+      "id": "Edge_bt09rt81cvf",
+      "name": "A24>A19",
+      "source": "Place_33",
+      "target": "Place_28",
+      "attributes": []
+    },
+    {
+      "id": "Edge_av4ryvx04k",
+      "name": "A18>A24",
+      "source": "Place_27",
+      "target": "Place_33",
+      "attributes": []
+    },
+    {
+      "id": "Edge_b3tg53u13uc",
+      "name": "EN5>A25",
+      "source": "Place_26",
+      "target": "Place_34",
+      "attributes": []
+    },
+    {
+      "id": "Edge_20z2imwyfyu",
+      "name": "A25>A26",
+      "source": "Place_34",
+      "target": "Place_35",
+      "attributes": []
+    },
+    {
+      "id": "Edge_qcutrm4dgpi",
+      "name": "A26>A27",
+      "source": "Place_35",
+      "target": "Place_36",
+      "attributes": []
+    },
+    {
+      "id": "Edge_bgn6cnrtkcl",
+      "name": "A27>A28",
+      "source": "Place_36",
+      "target": "Place_37",
+      "attributes": []
+    },
+    {
+      "id": "Edge_m68aotcv5f",
+      "name": "A28>A29",
+      "source": "Place_37",
+      "target": "Place_38",
+      "attributes": []
+    },
+    {
+      "id": "Edge_h44wkd5xfi",
+      "name": "A29>A30",
+      "source": "Place_38",
+      "target": "Place_39",
+      "attributes": []
+    },
+    {
+      "id": "Edge_9kzttblp23",
+      "name": "A30>A31",
+      "source": "Place_39",
+      "target": "Place_40",
+      "attributes": []
+    },
+    {
+      "id": "Edge_qotwrv3vve",
+      "name": "A31>EN5",
+      "source": "Place_40",
+      "target": "Place_26",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ew519jgosjr",
+      "name": "EN3>A34",
+      "source": "Place_11",
+      "target": "Place_43",
+      "attributes": []
+    },
+    {
+      "id": "Edge_nu3do8zf5ye",
+      "name": "A34>A35",
+      "source": "Place_43",
+      "target": "Place_44",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ool5k79u6x",
+      "name": "A35>A37",
+      "source": "Place_44",
+      "target": "Place_46",
+      "attributes": []
+    },
+    {
+      "id": "Edge_tb9a9ncd8bh",
+      "name": "A37>EN6",
+      "source": "Place_46",
+      "target": "Place_47",
+      "attributes": []
+    },
+    {
+      "id": "Edge_sqv085hhb7j",
+      "name": "EN6>A39",
+      "source": "Place_47",
+      "target": "Place_49",
+      "attributes": []
+    },
+    {
+      "id": "Edge_urh4s8icpo",
+      "name": "A39>A40",
+      "source": "Place_49",
+      "target": "Place_50",
+      "attributes": []
+    },
+    {
+      "id": "Edge_8flcelvq9zg",
+      "name": "A39>A38",
+      "source": "Place_49",
+      "target": "Place_48",
+      "attributes": []
+    },
+    {
+      "id": "Edge_dsoxj5jcv4",
+      "name": "A38>A36",
+      "source": "Place_48",
+      "target": "Place_45",
+      "attributes": []
+    },
+    {
+      "id": "Edge_quavuoi5cw",
+      "name": "A36>A40",
+      "source": "Place_45",
+      "target": "Place_50",
+      "attributes": []
+    },
+    {
+      "id": "Edge_cy562qf2f2w",
+      "name": "A40>A38",
+      "source": "Place_50",
+      "target": "Place_48",
+      "attributes": []
+    },
+    {
+      "id": "Edge_fntyha6wgmv",
+      "name": "EN3>A32",
+      "source": "Place_11",
+      "target": "Place_41",
+      "attributes": []
+    },
+    {
+      "id": "Edge_etbfu3lm41",
+      "name": "A32>A33",
+      "source": "Place_41",
+      "target": "Place_42",
+      "attributes": []
+    },
+    {
+      "id": "Edge_tyaiehk1r",
+      "name": "A33>A45",
+      "source": "Place_42",
+      "target": "Place_56",
+      "attributes": []
+    },
+    {
+      "id": "Edge_nxqqm59zxmj",
+      "name": "A45>A46",
+      "source": "Place_56",
+      "target": "Place_57",
+      "attributes": []
+    },
+    {
+      "id": "Edge_lgfno4bypyp",
+      "name": "A46>A47",
+      "source": "Place_57",
+      "target": "Place_58",
+      "attributes": []
+    },
+    {
+      "id": "Edge_rxwjck5xd9p",
+      "name": "A47>A48",
+      "source": "Place_58",
+      "target": "Place_59",
+      "attributes": []
+    },
+    {
+      "id": "Edge_rzwwm6quh1",
+      "name": "A48>A49",
+      "source": "Place_59",
+      "target": "Place_60",
+      "attributes": []
+    },
+    {
+      "id": "Edge_0jxgxlzi2tbj",
+      "name": "A49>EN7",
+      "source": "Place_60",
+      "target": "Place_55",
+      "attributes": []
+    },
+    {
+      "id": "Edge_8yahhyb68yl",
+      "name": "A44>EN7",
+      "source": "Place_54",
+      "target": "Place_55",
+      "attributes": []
+    },
+    {
+      "id": "Edge_771qgxc3h1e",
+      "name": "EN6>A41",
+      "source": "Place_47",
+      "target": "Place_51",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ppaeo09r2xp",
+      "name": "A41>A42",
+      "source": "Place_51",
+      "target": "Place_52",
+      "attributes": []
+    },
+    {
+      "id": "Edge_3zp4rmsk52k",
+      "name": "A42>A43",
+      "source": "Place_52",
+      "target": "Place_53",
+      "attributes": []
+    },
+    {
+      "id": "Edge_csz90jmzfam",
+      "name": "A43>A44",
+      "source": "Place_53",
+      "target": "Place_54",
+      "attributes": []
+    },
+    {
+      "id": "Edge_q5r1fiyghi",
+      "name": "EN7>A50",
+      "source": "Place_55",
+      "target": "Place_61",
+      "attributes": []
+    },
+    {
+      "id": "Edge_79mkkjo6ief",
+      "name": "A50>EN9",
+      "source": "Place_61",
+      "target": "Place_69",
+      "attributes": []
+    },
+    {
+      "id": "Edge_1kutergcm4t",
+      "name": "A56>EN9",
+      "source": "Place_68",
+      "target": "Place_69",
+      "attributes": []
+    },
+    {
+      "id": "Edge_wm8m6ysw3hg",
+      "name": "A50>A51",
+      "source": "Place_61",
+      "target": "Place_62",
+      "attributes": []
+    },
+    {
+      "id": "Edge_yp727eqla9b",
+      "name": "A51>A52",
+      "source": "Place_62",
+      "target": "Place_63",
+      "attributes": []
+    },
+    {
+      "id": "Edge_bfsol2k0m6s",
+      "name": "A52>A53",
+      "source": "Place_63",
+      "target": "Place_64",
+      "attributes": []
+    },
+    {
+      "id": "Edge_yvuekti0ml",
+      "name": "A53>EN8",
+      "source": "Place_64",
+      "target": "Place_65",
+      "attributes": []
+    },
+    {
+      "id": "Edge_da54ph33ktc",
+      "name": "A53>A54",
+      "source": "Place_64",
+      "target": "Place_66",
+      "attributes": []
+    },
+    {
+      "id": "Edge_nrrkpjh78w",
+      "name": "EN8>A54",
+      "source": "Place_65",
+      "target": "Place_66",
+      "attributes": []
+    },
+    {
+      "id": "Edge_4rjapfyjdge",
+      "name": "A54>A55",
+      "source": "Place_66",
+      "target": "Place_67",
+      "attributes": []
+    },
+    {
+      "id": "Edge_7eat7ewx12b",
+      "name": "A55>A56",
+      "source": "Place_67",
+      "target": "Place_68",
+      "attributes": []
+    }
+  ]
+}

@@ -23,7 +23,6 @@ import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.participant.ParticipantService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/environment")
@@ -160,6 +159,11 @@ public class EnvironmentController {
         }
     }
 
+    /**
+     * Retrieves the list of all participants, merging their local attributes with any attributes stored in the Camunda process variables.
+     *
+     * @return A ResponseEntity containing the list of participants or an error message if an error occurs.
+     */
     @GetMapping("/participants")
     public ResponseEntity<Response<List<Participant>>> getParticipants() {
         try {
@@ -205,6 +209,12 @@ public class EnvironmentController {
         }
     }
 
+    /**
+     * Retrieves the list of pending actions for a specific participant.
+     *
+     * @param id The ID of the participant.
+     * @return A ResponseEntity containing the list of pending actions or an error message if an error occurs.
+     */
     @GetMapping("/participants/{id}/actions/pending")
     public ResponseEntity<Response<List<Map<String, String>>>> getPendingParticipantActions(
             @PathVariable String id) {
@@ -218,6 +228,7 @@ public class EnvironmentController {
 
             Participant participant = participantOpt.get();
 
+            // If the participant's position is null or blank, return an empty list of pending actions
             if (participant.getPosition() == null || participant.getPosition().isBlank()) {
                 return ResponseEntity.ok(Response.ok(List.of()));
             }
@@ -225,6 +236,8 @@ public class EnvironmentController {
             List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(id);
             TourResponse calculatedTour;
 
+            // If the participant is bound to others, calculate the tour based on the first bound partner,
+            // otherwise calculate the tour based on the participant itself
             if (!boundPartners.isEmpty()) {
                 String guideId = boundPartners.get(0);
                 Participant guide = participantDataService.getParticipant(guideId).orElse(participant);
@@ -251,6 +264,7 @@ public class EnvironmentController {
             List<Map<String, String>> pendingActions = new ArrayList<>();
             List<Map<String, String>> pendingMovements = new ArrayList<>();
 
+            // Aggregate pending actions and movements for the participant and any resolved participants
             for (String targetIdCandidate : targetIds) {
                 pendingActions.addAll(environmentalTaskRegistry.getPendingActionsForParticipant(targetIdCandidate));
                 pendingActions.addAll(bindingTaskRegistry.getPendingBindingsForParticipant(targetIdCandidate));
@@ -469,6 +483,7 @@ public class EnvironmentController {
             participantDataService.updateParticipantPosition(id, newPosition);
             synchronizeParticipantTour(id);
 
+            // Automatically update the positions of any bound partners to ensure consistency in the environment
             List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(id);
             for (String partnerId : boundPartners) {
                 participantDataService.updateParticipantPosition(partnerId, newPosition);
@@ -508,12 +523,12 @@ public class EnvironmentController {
             }
 
             Optional<PhysicalPlace> resolvedPlace = environmentDataService.resolvePhysicalPlaceByCoordinates(latitude, longitude);
-
             String placeId = resolvedPlace.map(PhysicalPlace::getId).orElse(null);
 
             participantDataService.updateParticipantPosition(id, placeId);
             synchronizeParticipantTour(id);
 
+            // Automatically update the positions of any bound partners to ensure consistency in the environment
             List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(id);
             for (String partnerId : boundPartners) {
                 participantDataService.updateParticipantPosition(partnerId, placeId);
@@ -521,13 +536,6 @@ public class EnvironmentController {
                 log.info("[Environment API] Auto-updated bound partner '{}' position via coordinates to: {}", partnerId, placeId);
             }
 
-            if (placeId == null) {
-                log.info("[Environment API] Participant '{}' coordinates ({}, {}) did not match any place — position set to null",
-                        id, latitude, longitude);
-            } else {
-                log.info("[Environment API] Participant '{}' position resolved from ({}, {}) to place '{}'",
-                        id, latitude, longitude, placeId);
-            }
             return ResponseEntity.ok(Response.ok(placeId));
         } catch (Exception e) {
             log.error("[Environment API] Failed to resolve coordinates for participant: {}", id, e);
@@ -625,6 +633,7 @@ public class EnvironmentController {
             return;
         }
 
+        // 1. Identify the active Process Instance associated with the current participant
         Task activeTask = findActiveUserTaskForParticipant(participantId);
         String processInstanceId = activeTask != null ? activeTask.getProcessInstanceId() : null;
         if (processInstanceId == null) {
@@ -638,6 +647,7 @@ public class EnvironmentController {
                     .orElse(null);
         }
 
+        // 2. If a process instance is found, calculate and synchronize the tour for the participant
         if (processInstanceId != null) {
             TourResponse synchronizedTour = participantTourService.calculateAndSyncTour(participantOpt.get(), processInstanceId);
             List<String> orderedTargets = synchronizedTour != null
@@ -646,6 +656,7 @@ public class EnvironmentController {
             if (orderedTargets != null && !orderedTargets.isEmpty()) {
                 movementTaskRegistry.updateDestinationFromTour(participantId, orderedTargets.get(0));
 
+                // 3. If the participant is bound to others, update their destinations as well
                 List<String> boundPartners = boundParticipantsMonitor.getBoundPartners(participantId);
                 for (String partnerId : boundPartners) {
                     movementTaskRegistry.updateDestinationFromTour(partnerId, orderedTargets.get(0));
