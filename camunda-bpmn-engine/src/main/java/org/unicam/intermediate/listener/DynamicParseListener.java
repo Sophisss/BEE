@@ -3,6 +3,8 @@ package org.unicam.intermediate.listener;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.impl.bpmn.listener.DelegateExpressionExecutionListener;
+import org.camunda.bpm.engine.impl.bpmn.behavior.ConditionalEventBehavior;
+import org.camunda.bpm.engine.impl.bpmn.parser.ConditionalEventDefinition;
 import org.camunda.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.el.ExpressionManager;
@@ -204,6 +206,46 @@ public class DynamicParseListener extends AbstractBpmnParseListener {
     public void parseIntermediateThrowEvent(Element intermediateEventElement, ScopeImpl scope, ActivityImpl activity) {
         if (hasMessageEventDefinition(intermediateEventElement)) {
             addMessageThrowListener(activity);
+        }
+    }
+
+    @Override
+    public void parseIntermediateCatchEvent(Element intermediateEventElement, ScopeImpl scope, ActivityImpl activity) {
+        Element conditionalEventDefinitionElement = intermediateEventElement.element("conditionalEventDefinition");
+
+        if (conditionalEventDefinitionElement != null) {
+            Element conditionElement = conditionalEventDefinitionElement.element("condition");
+            if (conditionElement != null) {
+                String originalExpression = conditionElement.getText();
+
+                if (originalExpression != null && !originalExpression.trim().isEmpty()
+                        && originalExpression.contains("myPlace()")) {
+                    try {
+                        String wrappedExpression = String.format(
+                                "${conditionalEventGuardEvaluator.evaluate(execution, '%s')}",
+                                originalExpression.replace("'", "\\'")
+                        );
+
+                        ExpressionManager exprMgr = Context.getProcessEngineConfiguration().getExpressionManager();
+                        var expression = exprMgr.createExpression(wrappedExpression);
+                        var newCondition = new org.camunda.bpm.engine.impl.el.UelExpressionCondition(expression);
+
+                        ConditionalEventDefinition conditionalEventDefinition =
+                                ((ConditionalEventBehavior) activity.getActivityBehavior())
+                                        .getConditionalEventDefinition();
+                        java.lang.reflect.Field conditionField = ConditionalEventDefinition.class
+                                .getDeclaredField("condition");
+                        conditionField.setAccessible(true);
+                        conditionField.set(conditionalEventDefinition, newCondition);
+
+                        log.info("[DynamicParseListener] Riscritta condizione per il Conditional Catch Event '{}': {} -> {}",
+                                activity.getId(), originalExpression, wrappedExpression);
+                    } catch (Exception e) {
+                        log.error("[DynamicParseListener] Errore durante la riscrittura del Conditional Event per l'attività '{}': {}",
+                                activity.getId(), e.getMessage(), e);
+                    }
+                }
+            }
         }
     }
 

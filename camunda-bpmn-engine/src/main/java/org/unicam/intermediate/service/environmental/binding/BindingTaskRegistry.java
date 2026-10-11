@@ -9,6 +9,7 @@ import org.unicam.intermediate.events.ParticipantPositionChangedEvent;
 import org.unicam.intermediate.models.record.BindingTaskInfo;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.environmental.BoundParticipantsDiscordanceMonitor;
+import org.unicam.intermediate.service.EnvironmentChangeNotifier;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,6 +30,7 @@ public class BindingTaskRegistry {
     private final ParticipantDataService participantDataService;
     private final RuntimeService runtimeService;
     private final BoundParticipantsDiscordanceMonitor boundParticipantsMonitor;
+    private final EnvironmentChangeNotifier environmentChangeNotifier;
 
     // participantId -> binding task currently waiting for counterpart
     private final Map<String, BindingTaskInfo> waitingByParticipant = new ConcurrentHashMap<>();
@@ -44,10 +46,12 @@ public class BindingTaskRegistry {
 
     public BindingTaskRegistry(ParticipantDataService participantDataService,
                                RuntimeService runtimeService,
-                               BoundParticipantsDiscordanceMonitor boundParticipantsMonitor) {
+                               BoundParticipantsDiscordanceMonitor boundParticipantsMonitor,
+                               EnvironmentChangeNotifier environmentChangeNotifier) {
         this.participantDataService = participantDataService;
         this.runtimeService = runtimeService;
         this.boundParticipantsMonitor = boundParticipantsMonitor;
+        this.environmentChangeNotifier = environmentChangeNotifier;
     }
 
     public void registerTask(String businessKey,
@@ -314,7 +318,8 @@ public class BindingTaskRegistry {
                 log.info("[BindingRegistry] Pair {} reached same position '{}' -> completing binding tasks",
                         pairKey, positionA);
                 try {
-                    String processInstanceId = getProcessInstanceId(pair.first.executionId());
+                    String firstProcessInstanceId = getProcessInstanceId(pair.first.executionId());
+                    String secondProcessInstanceId = getProcessInstanceId(pair.second.executionId());
 
                     runtimeService.signal(pair.first.executionId());
                     runtimeService.signal(pair.second.executionId());
@@ -322,10 +327,26 @@ public class BindingTaskRegistry {
                     // Notify the discordance monitor that this pair is now bound
                     boundParticipantsMonitor.markBound(
                             pair.first.businessKey(),
-                            processInstanceId,
+                            firstProcessInstanceId,
                             pair.first.participantId(),
                             pair.second.participantId()
                     );
+
+                    // The position event can be delivered while both executions are
+                    // still waiting on the binding activity. Re-notify after both
+                    // signals so conditional events at the next wait state are
+                    // evaluated with the completed binding state.
+                    environmentChangeNotifier.notifyProcessInstanceChanged(
+                            firstProcessInstanceId,
+                            pair.first.participantId()
+                    );
+                    if (secondProcessInstanceId != null
+                            && !secondProcessInstanceId.equals(firstProcessInstanceId)) {
+                        environmentChangeNotifier.notifyProcessInstanceChanged(
+                                secondProcessInstanceId,
+                                pair.second.participantId()
+                        );
+                    }
 
                     pairsToRemove.add(pairKey);
                 } catch (Exception e) {

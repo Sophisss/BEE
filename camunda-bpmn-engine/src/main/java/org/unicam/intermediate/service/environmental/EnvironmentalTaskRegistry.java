@@ -14,6 +14,7 @@ import org.unicam.intermediate.models.dto.websocket.GpsResponse;
 import org.unicam.intermediate.models.pojo.PhysicalPlace;
 import org.unicam.intermediate.models.record.EnvironmentalTaskInfo;
 import org.unicam.intermediate.service.ProcessVariableService;
+import org.unicam.intermediate.service.EnvironmentChangeNotifier;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.participant.ParticipantService;
 import org.unicam.intermediate.service.participant.UserParticipantMappingService;
@@ -48,6 +49,7 @@ public class EnvironmentalTaskRegistry {
     private final ParticipantService participantService;
     private final UserParticipantMappingService userParticipantMappingService;
     private final ProcessVariableService processVariableService;
+    private final EnvironmentChangeNotifier environmentChangeNotifier;
     private final ParticipantTourService participantTourService;
     private final WebSocketSessionManager webSocketSessionManager;
 
@@ -66,6 +68,7 @@ public class EnvironmentalTaskRegistry {
                                      ParticipantService participantService,
                                      UserParticipantMappingService userParticipantMappingService,
                                      ProcessVariableService processVariableService,
+                                     EnvironmentChangeNotifier environmentChangeNotifier,
                                      ParticipantTourService participantTourService,
                                      WebSocketSessionManager webSocketSessionManager) {
         this.environmentDataService = environmentDataService;
@@ -74,6 +77,7 @@ public class EnvironmentalTaskRegistry {
         this.participantService = participantService;
         this.userParticipantMappingService = userParticipantMappingService;
         this.processVariableService = processVariableService;
+        this.environmentChangeNotifier = environmentChangeNotifier;
         this.participantTourService = participantTourService;
         this.webSocketSessionManager = webSocketSessionManager;
     }
@@ -201,6 +205,11 @@ public class EnvironmentalTaskRegistry {
             }
 
             try {
+                String processInstanceId = runtimeService.createExecutionQuery()
+                        .executionId(taskInfo.executionId())
+                        .singleResult()
+                        .getProcessInstanceId();
+
                 if (actionCheckResult == ActionCheckResult.TIMEOUT) {
                     runtimeService.setVariableLocal(taskInfo.executionId(), BPMN_ERROR_CODE_VAR, FAILED_ACTION_ERROR_CODE);
                     runtimeService.setVariableLocal(
@@ -215,6 +224,14 @@ public class EnvironmentalTaskRegistry {
                 }
 
                 runtimeService.signal(taskInfo.executionId());
+                if (actionCheckResult != ActionCheckResult.TIMEOUT) {
+                    // The signal must first move the process to its next wait state.
+                    // Only then can Camunda evaluate newly created conditional events.
+                    environmentChangeNotifier.notifyProcessInstanceChanged(
+                            processInstanceId,
+                            taskInfo.participantId()
+                    );
+                }
                 completedTasks.add(taskInfo);
                 if (actionCheckResult == ActionCheckResult.TIMEOUT) {
                     log.warn("[EnvironmentalRegistry] Action timer expired -> raised '{}' | activity={} | execution={} | action='{}' | timer={}",
