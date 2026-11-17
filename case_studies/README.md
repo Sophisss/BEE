@@ -1,6 +1,6 @@
 # BPM26 Case Studies
 
-This folder contains four case-study scenarios, one per domain, each including:
+This folder contains five case-study scenarios, one per domain, each including:
 
 - one or more BPMN files (`.bpmn`) with process models
 - one environment file (`*.json`) with places, edges, logical places, and views
@@ -22,6 +22,9 @@ BPM26_case_studies/
 │   ├── firefighters-firecontrolsystem.log
 │   ├── nurse-patient-ambulance.bpmn
 │   └── nurse-patient-ambulance.log
+├── botanical_garden/
+│   ├── botanical_garden.json
+│   └── smart_botanical_garden.bpmn
 ├── farm/
 │   ├── farm.json
 │   ├── planter-farmer.bpmn
