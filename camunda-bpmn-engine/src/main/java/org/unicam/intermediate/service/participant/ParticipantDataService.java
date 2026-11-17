@@ -160,6 +160,22 @@ public class ParticipantDataService {
     }
 
     /**
+     * Clears a participant position when a BPMN collaboration is deployed.
+     * A BPMN participant has no physical position until it is explicitly assigned.
+     */
+    public void clearParticipantPosition(String id) {
+        if (id == null || id.isBlank()) {
+            return;
+        }
+
+        Participant participant = participantsMap.get(id);
+        if (participant != null) {
+            participant.setPosition(null);
+            log.debug("[ParticipantDataService] Cleared participant {} position", id);
+        }
+    }
+
+    /**
      * Updates or adds attributes for a specific participant.
      */
     public void updateParticipantAttributes(String id, Map<String, Object> newAttributes) {

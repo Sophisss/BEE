@@ -14,6 +14,7 @@ import org.camunda.bpm.model.bpmn.instance.StartEvent;
 import org.camunda.bpm.model.xml.instance.DomElement;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.unicam.intermediate.service.environmental.EnvironmentDataService;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -35,15 +36,18 @@ public class EnvironmentConditionalStartService {
     private final RepositoryService repositoryService;
     private final RuntimeService runtimeService;
     private final SequenceFlowGuardEvaluator sequenceFlowGuardEvaluator;
+    private final EnvironmentDataService environmentDataService;
 
     private final Map<String, Boolean> lastSatisfiedByStartKey = new ConcurrentHashMap<>();
 
     public EnvironmentConditionalStartService(RepositoryService repositoryService,
                                               RuntimeService runtimeService,
-                                              SequenceFlowGuardEvaluator sequenceFlowGuardEvaluator) {
+                                              SequenceFlowGuardEvaluator sequenceFlowGuardEvaluator,
+                                              EnvironmentDataService environmentDataService) {
         this.repositoryService = repositoryService;
         this.runtimeService = runtimeService;
         this.sequenceFlowGuardEvaluator = sequenceFlowGuardEvaluator;
+        this.environmentDataService = environmentDataService;
     }
 
     @Scheduled(fixedRate = 2000)
@@ -74,6 +78,14 @@ public class EnvironmentConditionalStartService {
                 continue;
             }
 
+            if (isEmptyBreachedArtworksGuard(guardExpression)) {
+                int breachedCount = environmentDataService.countPhysicalPlacesInLogicalPlace("Breached Artworks");
+                if (breachedCount == 0) {
+                    lastSatisfiedByStartKey.put(definition.getId() + ":" + startEvent.getId(), false);
+                    continue;
+                }
+            }
+
             String startKey = definition.getId() + ":" + startEvent.getId();
             boolean wasSatisfied = lastSatisfiedByStartKey.getOrDefault(startKey, false);
             boolean isSatisfied = sequenceFlowGuardEvaluator.evaluateAdHocGuard(
@@ -98,6 +110,7 @@ public class EnvironmentConditionalStartService {
                             startConditionalProcess(definition, startEvent, guardExpression, businessKey);
                         }
                     }
+
                 } else {
                     long activeInstances = runtimeService.createProcessInstanceQuery()
                             .processDefinitionId(definition.getId())
@@ -112,6 +125,12 @@ public class EnvironmentConditionalStartService {
 
             lastSatisfiedByStartKey.put(startKey, isSatisfied);
         }
+    }
+
+    private boolean isEmptyBreachedArtworksGuard(String guardExpression) {
+        return guardExpression.trim().matches(
+                "(?i)Breached\\s+Artworks\\.count\\s*>\\s*0"
+        );
     }
 
     private String extractGuard(ExtensionElements extensionElements) {

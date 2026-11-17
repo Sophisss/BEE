@@ -21,6 +21,7 @@ import org.unicam.intermediate.service.environmental.movement.MovementTaskRegist
 import org.unicam.intermediate.service.environmental.unbinding.UnbindingTaskRegistry;
 import org.unicam.intermediate.service.participant.ParticipantDataService;
 import org.unicam.intermediate.service.participant.ParticipantService;
+import org.unicam.intermediate.service.EnvironmentChangeNotifier;
 
 import java.util.*;
 
@@ -31,6 +32,7 @@ import java.util.*;
 public class EnvironmentController {
 
     private final EnvironmentDataService environmentDataService;
+    private final EnvironmentChangeNotifier environmentChangeNotifier;
     private final ParticipantDataService participantDataService;
     private final EnvironmentalTaskRegistry environmentalTaskRegistry;
     private final MovementTaskRegistry movementTaskRegistry;
@@ -149,7 +151,13 @@ public class EnvironmentController {
                         .body(Response.error("Physical place not found: " + id));
             }
             Object newValue = requestBody.get("value");
+            if (place.get().getAttributes() == null) {
+                place.get().setAttributes(new LinkedHashMap<>());
+            }
             place.get().getAttributes().put(key, newValue);
+            if (isConditionRelevantAttribute(key)) {
+                environmentChangeNotifier.notifyAllActiveProcessInstances();
+            }
             log.info("[Environment API] Attribute '{}' for place '{}' set to: {}", key, id, newValue);
             return ResponseEntity.ok(Response.ok(newValue));
         } catch (Exception e) {
@@ -157,6 +165,11 @@ public class EnvironmentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Response.error("Failed to set attribute: " + e.getMessage()));
         }
+
+    }
+
+    private boolean isConditionRelevantAttribute(String key) {
+        return key != null && !key.trim().isEmpty();
     }
 
     /**
@@ -274,6 +287,15 @@ public class EnvironmentController {
 
             if (targetId == null && !pendingMovements.isEmpty()) {
                 targetId = pendingMovements.get(0).get("destination");
+            }
+
+            if (!pendingMovements.isEmpty()) {
+                String movementDestination = pendingMovements.get(0).get("destination");
+                List<String> matchingPhysicalPlaceIds =
+                        movementTaskRegistry.resolveMatchingPhysicalPlaceIdsForLogicalDestination(movementDestination);
+                if (!matchingPhysicalPlaceIds.isEmpty()) {
+                    targetId = matchingPhysicalPlaceIds.get(0);
+                }
             }
 
             if (targetId == null) {

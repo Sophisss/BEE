@@ -125,7 +125,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -150,6 +151,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Renaissance",
         "typo": "Panel paintings",
         "zone": "R1",
@@ -161,7 +165,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -186,6 +191,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Renaissance",
         "zone": "R1",
         "typo": "Panel paintings",
@@ -197,7 +205,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -222,6 +231,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Baroque",
         "zone": "R1",
         "typo": "Panel paintings",
@@ -233,7 +245,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -258,6 +271,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Frescoes, Romanticism",
         "zone": "R1",
         "typo": "Frescoes",
@@ -269,7 +285,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -294,7 +311,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -319,7 +337,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -344,6 +363,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Banners, Renaissance",
         "zone": "R1",
         "typo": "banners",
@@ -355,7 +377,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -380,7 +403,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -405,6 +429,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Banners, Realism",
         "zone": "R2",
         "typo": "Banners",
@@ -416,7 +443,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -441,6 +469,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Banners, Renaissance",
         "zone": "R2",
         "typo": "Banners",
@@ -452,7 +483,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -477,6 +509,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Frescoes, Baroque",
         "zone": "R2",
         "typo": "Frescoes",
@@ -488,7 +523,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -513,6 +549,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Frescoes, Neoclassicism",
         "zone": "R1",
         "typo": "Frescoes",
@@ -524,7 +563,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -549,6 +589,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Frescoes, Neoclassicism",
         "zone": "R1",
         "typo": "Frescoes",
@@ -560,7 +603,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -585,6 +629,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Renaissance",
         "zone": "R1",
         "typo": "Panel paintings",
@@ -596,7 +643,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -621,6 +669,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Baroque",
         "zone": "R1",
         "typo": "Panel paintings",
@@ -632,7 +683,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -657,6 +709,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Renaissance",
         "zone": "R1",
         "typo": "Panel paintings",
@@ -668,7 +723,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -693,6 +749,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Panel paintings, Renaissance",
         "zone": "R1",
         "typo": "Panel paintings",
@@ -704,7 +763,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -729,6 +789,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -740,7 +803,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -765,6 +829,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -776,7 +843,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -801,6 +869,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -812,7 +883,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -837,7 +909,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -862,6 +935,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -873,7 +949,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -898,6 +975,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -909,7 +989,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -934,6 +1015,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -945,7 +1029,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -970,6 +1055,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -981,7 +1069,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1006,6 +1095,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -1017,7 +1109,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1042,6 +1135,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -1053,7 +1149,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1078,6 +1175,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Renaissance",
         "zone": "R3",
         "typo": "Sculptures",
@@ -1089,7 +1189,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1114,6 +1215,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1125,7 +1229,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1150,6 +1255,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1161,7 +1269,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1186,6 +1295,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1197,7 +1309,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1222,6 +1335,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1233,7 +1349,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1258,6 +1375,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1269,7 +1389,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1294,6 +1415,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1305,7 +1429,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1330,6 +1455,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Sculptures, Middle Ages",
         "zone": "R4",
         "typo": "Sculptures",
@@ -1341,7 +1469,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1366,6 +1495,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Rococo",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1377,7 +1509,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1402,6 +1535,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Rococo",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1413,7 +1549,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1442,6 +1579,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Baroque",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1453,7 +1593,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1478,6 +1619,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Baroque",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1489,7 +1633,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1514,6 +1659,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Temporary exhibition of works from Camerino churches",
         "zone": "R6",
         "typo": "Temporary exhibition of works from Camerino churches",
@@ -1524,7 +1672,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1549,6 +1698,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Classicism",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1560,7 +1712,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1585,7 +1738,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -1610,6 +1764,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Temporary exhibition of works from Camerino churches",
         "zone": "R6",
         "typo": "Temporary exhibition of works from Camerino churches",
@@ -1620,7 +1777,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1645,6 +1803,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Temporary exhibition of works from Camerino churches",
         "zone": "R6",
         "typo": "Temporary exhibition of works from Camerino churches",
@@ -1655,7 +1816,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1680,6 +1842,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Temporary exhibition of works from Camerino churches",
         "zone": "R6",
         "typo": "Temporary exhibition of works from Camerino churches",
@@ -1690,7 +1855,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1715,6 +1881,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Classicism",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1726,7 +1895,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1751,6 +1921,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Classicism",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1762,7 +1935,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1787,6 +1961,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Baroque",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1798,7 +1975,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1823,6 +2001,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Baroque",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1834,7 +2015,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1859,7 +2041,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -1884,6 +2067,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Renaissance",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1895,7 +2081,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1920,6 +2107,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Renaissance",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1931,7 +2121,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1956,6 +2147,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Rococo",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -1967,7 +2161,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -1992,6 +2187,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Renaissance",
         "zone": "R5",
         "typo": "Canvas paintingsCanvas paintings",
@@ -2003,7 +2201,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2028,6 +2227,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Canvas paintings, Renaissance",
         "zone": "R5",
         "typo": "Canvas paintings",
@@ -2039,7 +2241,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2064,6 +2267,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": " Goldsmithing and liturgical furnishings, Renaissance",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2075,7 +2281,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2100,6 +2307,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Renaissance",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2111,7 +2321,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2136,6 +2347,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Renaissance",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2147,7 +2361,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2172,6 +2387,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings,  Baroque",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2183,7 +2401,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2208,7 +2427,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -2233,6 +2453,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings,  Baroque",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2244,7 +2467,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2269,6 +2493,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2280,7 +2507,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2305,6 +2533,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2316,7 +2547,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2341,7 +2573,8 @@
         ]
       ],
       "attributes": {
-        "tags": []
+        "tags": [],
+        "total_passages": 0
       }
     },
     {
@@ -2392,6 +2625,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
         "zone": "R7",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2403,7 +2639,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2428,6 +2665,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Contemporary Era",
         "zone": "R8",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2439,7 +2679,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2464,6 +2705,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Contemporary Era",
         "zone": "R8",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2475,7 +2719,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2500,6 +2745,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Contemporary Era",
         "zone": "R8",
         "typo": "Goldsmithing and liturgical furnishings",
@@ -2511,7 +2759,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     },
     {
@@ -2540,6 +2789,9 @@
         ]
       ],
       "attributes": {
+        "cleaning_status": "clean",
+        "security_status": "safe",
+        "alarm": "off",
         "tags": "Goldsmithing and liturgical furnishings, Middle Ages",
         "typo": "Goldsmithing and liturgical furnishings",
         "zone": "R8",
@@ -2551,7 +2803,8 @@
         "status": "",
         "audio": "off",
         "lights": "off",
-        "is_accessible": "true"
+        "is_accessible": "true",
+        "is_touched": "false"
       }
     }
   ],
@@ -2566,6 +2819,7 @@
         "Place_9",
         "Place_12",
         "Place_17",
+        "Place_18",
         "Place_19",
         "Place_20",
         "Place_21",
@@ -2662,6 +2916,28 @@
         "Place_73",
         "Place_74",
         "Place_75"
+      ]
+    },
+    {
+      "id": "LogicalPlace_BreachedArtworks",
+      "name": "Breached Artworks",
+      "conditions": [
+        {
+          "attribute": "security_status",
+          "operator": "==",
+          "value": "breach"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_DirtyRooms",
+      "name": "Dirty Rooms",
+      "conditions": [
+        {
+          "attribute": "cleaning_status",
+          "operator": "==",
+          "value": "toClean"
+        }
       ]
     }
   ],
@@ -2761,13 +3037,6 @@
       "id": "Edge_yohe4igmqp",
       "name": "A3>EN2",
       "source": "Place_8",
-      "target": "Place_10",
-      "attributes": []
-    },
-    {
-      "id": "Edge_xirwm4utij",
-      "name": "EN2>A4",
-      "source": "Place_10",
       "target": "Place_9",
       "attributes": []
     },

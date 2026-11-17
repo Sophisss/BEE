@@ -1,6 +1,7 @@
 package org.unicam.intermediate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.OptimisticLockingException;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -51,20 +52,25 @@ public class EnvironmentChangeNotifier {
      * myPlace() to the changed physical place. Such processes do not
      * necessarily share a business key with the process receiving the event.
      */
-    private void notifyAllActiveProcessInstances() {
+    public synchronized void notifyAllActiveProcessInstances() {
         List<ProcessInstance> activeInstances = runtimeService.createProcessInstanceQuery()
                 .active()
                 .list();
 
         for (ProcessInstance instance : activeInstances) {
-            notifyProcessInstanceEnvironmentChanged(instance);
+            try {
+                notifyProcessInstanceEnvironmentChanged(instance);
+            } catch (OptimisticLockingException e) {
+                log.debug("[EnvironmentChangeNotifier] Skipped concurrent update for process instance {}",
+                        instance.getId());
+            }
         }
 
         log.info("[EnvironmentChangeNotifier] Position change propagated | activeProcessInstances={}",
                 activeInstances.size());
     }
 
-    public void notifyProcessInstanceChanged(String processInstanceId, String participantId) {
+    public synchronized void notifyProcessInstanceChanged(String processInstanceId, String participantId) {
         if (processInstanceId == null || processInstanceId.isBlank()) {
             return;
         }
@@ -86,7 +92,12 @@ public class EnvironmentChangeNotifier {
                 continue;
             }
 
-            notifyProcessInstanceEnvironmentChanged(related);
+            try {
+                notifyProcessInstanceEnvironmentChanged(related);
+            } catch (OptimisticLockingException e) {
+                log.debug("[EnvironmentChangeNotifier] Skipped concurrent update for related process instance {}",
+                        related.getId());
+            }
         }
 
         log.info("[EnvironmentChangeNotifier] Published environment change | processInstances={} | participantId={} | businessKey={}",

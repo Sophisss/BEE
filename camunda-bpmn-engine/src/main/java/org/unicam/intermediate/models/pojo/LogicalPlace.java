@@ -10,6 +10,7 @@ import java.util.List;
 public class LogicalPlace {
     private String id;
     private String name;
+    private List<String> contains;
     private List<Condition> conditions;
     private String expression;
     private String place;

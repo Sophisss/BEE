@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.unicam.intermediate.models.record.GatewayWaitInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,29 +76,68 @@ public class ExclusiveGatewayGuardRegistry {
             return;
         }
 
-        List<GatewayWaitInfo> completedGateways = new ArrayList<>();
-
         for (GatewayWaitInfo gatewayInfo : activeGateways.values()) {
             String selectedFlowId = selectFirstSatisfiedFlow(gatewayInfo);
             if (selectedFlowId == null) {
                 continue;
             }
 
+            // Claim the gateway before signaling it. This prevents a concurrent
+            // scheduler pass from signaling the same execution twice.
+            if (!activeGateways.remove(gatewayInfo.executionId(), gatewayInfo)) {
+                continue;
+            }
+
             try {
+                if (!hasCurrentActivity(gatewayInfo.executionId(), gatewayInfo.gatewayId())) {
+                    log.debug("[ExclusiveGatewayRegistry] Removing stale gateway {} (execution={})",
+                            gatewayInfo.gatewayId(), gatewayInfo.executionId());
+                    continue;
+                }
+
                 runtimeService.setVariable(gatewayInfo.executionId(), SELECTED_FLOW_VAR, selectedFlowId);
                 runtimeService.signal(gatewayInfo.executionId());
-                completedGateways.add(gatewayInfo);
 
                 log.info("[ExclusiveGatewayRegistry] Signaled gateway {} (execution={}) with selected flow {}",
                         gatewayInfo.gatewayId(), gatewayInfo.executionId(), selectedFlowId);
             } catch (Exception e) {
-                log.error("[ExclusiveGatewayRegistry] Failed to signal gateway {} (execution={}): {}",
-                        gatewayInfo.gatewayId(), gatewayInfo.executionId(), e.getMessage(), e);
+                if (isStaleExecutionError(e)
+                        || !hasCurrentActivity(gatewayInfo.executionId(), gatewayInfo.gatewayId())) {
+                    log.debug("[ExclusiveGatewayRegistry] Gateway {} (execution={}) is no longer signalable: {}",
+                            gatewayInfo.gatewayId(), gatewayInfo.executionId(), e.getMessage());
+                } else {
+                    activeGateways.putIfAbsent(gatewayInfo.executionId(), gatewayInfo);
+                    log.error("[ExclusiveGatewayRegistry] Failed to signal gateway {} (execution={}): {}",
+                            gatewayInfo.gatewayId(), gatewayInfo.executionId(), e.getMessage(), e);
+                }
             }
         }
+    }
 
-        completedGateways.forEach(gatewayInfo ->
-            removeGateway(gatewayInfo.executionId(), gatewayInfo.gatewayId()));
+    private boolean hasCurrentActivity(String executionId, String activityId) {
+        try {
+            return runtimeService.createExecutionQuery()
+                    .executionId(executionId)
+                    .activityId(activityId)
+                    .singleResult() != null;
+        } catch (Exception e) {
+            log.debug("[ExclusiveGatewayRegistry] Could not inspect execution {}: {}",
+                    executionId, e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isStaleExecutionError(Exception exception) {
+        String message = exception.getMessage();
+        if (message == null) {
+            return false;
+        }
+
+        String normalized = message.toLowerCase();
+        return normalized.contains("has no current activity")
+                || normalized.contains("execution is null")
+                || normalized.contains("doesn't exist")
+                || normalized.contains("not found");
     }
 
     private String selectFirstSatisfiedFlow(GatewayWaitInfo gatewayInfo) {

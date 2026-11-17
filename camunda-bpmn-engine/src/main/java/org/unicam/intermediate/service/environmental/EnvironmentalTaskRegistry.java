@@ -1,6 +1,7 @@
 package org.unicam.intermediate.service.environmental;
 
 import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.OptimisticLockingException;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -37,6 +38,18 @@ public class EnvironmentalTaskRegistry {
 
     private static final Pattern GUARD_PATTERN = Pattern.compile(
             "^(.+?)\\.([A-Za-z0-9_-]+)\\s*(==|!=|>=|<=|>|<)\\s*(.+)$"
+    );
+    private static final Pattern FOR_ALL_ZONE_ASSIGNMENT_PATTERN = Pattern.compile(
+            "^for\\s+all\\s+([A-Za-z0-9_]+)\\s+in\\s*\\(\\s*myPlace\\(\\)\\.zone\\s*\\)\\s*,?\\s*then\\s+\\1\\.([A-Za-z0-9_-]+)\\s*=\\s*([^;]+)(?:;\\s*(.+))?$",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern FOR_ALL_LOGICAL_PLACE_ASSIGNMENT_PATTERN = Pattern.compile(
+            "^for\\s+all\\s+([A-Za-z0-9_]+)\\s+in\\s*\\(\\s*(.+?)\\s*\\)\\s*,?\\s*then\\s+\\1\\.([A-Za-z0-9_-]+)\\s*=\\s*([^;]+)(?:;\\s*(.+))?$",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern LOGICAL_PLACE_ITEM_ACTION_PATTERN = Pattern.compile(
+            "^(.+?)\\[0\\]\\.([A-Za-z0-9_-]+)\\s*=\\s*(.+)$",
+            Pattern.CASE_INSENSITIVE
     );
 
     private static final String BPMN_ERROR_CODE_VAR = "__spaceBpmnErrorCode";
@@ -204,11 +217,19 @@ public class EnvironmentalTaskRegistry {
                 continue;
             }
 
+            String processInstanceId = null;
+            boolean actionApplied = false;
             try {
-                String processInstanceId = runtimeService.createExecutionQuery()
+                Execution execution = runtimeService.createExecutionQuery()
                         .executionId(taskInfo.executionId())
-                        .singleResult()
-                        .getProcessInstanceId();
+                        .singleResult();
+                if (execution == null) {
+                    log.warn("[EnvironmentalRegistry] Execution {} ended before action for activity {} | removing stale environmental task",
+                            taskInfo.executionId(), taskInfo.activityId());
+                    completedTasks.add(taskInfo);
+                    continue;
+                }
+                processInstanceId = execution.getProcessInstanceId();
 
                 if (actionCheckResult == ActionCheckResult.TIMEOUT) {
                     runtimeService.setVariableLocal(taskInfo.executionId(), BPMN_ERROR_CODE_VAR, FAILED_ACTION_ERROR_CODE);
@@ -221,16 +242,14 @@ public class EnvironmentalTaskRegistry {
                 } else {
                     // Esecuzione atomica delle modifiche/assegnazioni di stato solo al completamento
                     applyActionAssignments(taskInfo);
+                    actionApplied = true;
                 }
 
                 runtimeService.signal(taskInfo.executionId());
                 if (actionCheckResult != ActionCheckResult.TIMEOUT) {
                     // The signal must first move the process to its next wait state.
                     // Only then can Camunda evaluate newly created conditional events.
-                    environmentChangeNotifier.notifyProcessInstanceChanged(
-                            processInstanceId,
-                            taskInfo.participantId()
-                    );
+                    environmentChangeNotifier.notifyAllActiveProcessInstances();
                 }
                 completedTasks.add(taskInfo);
                 if (actionCheckResult == ActionCheckResult.TIMEOUT) {
@@ -251,7 +270,19 @@ public class EnvironmentalTaskRegistry {
                 if (isExecutionNotFoundError(e)) {
                     log.warn("[EnvironmentalRegistry] Execution {} already ended for activity {}. Cleaning up stale task.",
                             taskInfo.executionId(), taskInfo.activityId());
+                    if (actionApplied && processInstanceId != null) {
+                        environmentChangeNotifier.notifyAllActiveProcessInstances();
+                    }
                     completedTasks.add(taskInfo);
+                    continue;
+                }
+                if (e instanceof OptimisticLockingException
+                        || (e.getCause() instanceof OptimisticLockingException)) {
+                    log.warn("[EnvironmentalRegistry] Concurrent Camunda update for execution {} | actionApplied={}",
+                            taskInfo.executionId(), actionApplied);
+                    if (actionApplied) {
+                        completedTasks.add(taskInfo);
+                    }
                     continue;
                 }
                 log.error("[EnvironmentalRegistry] Failed to signal execution {} for activity {}: {}",
@@ -266,12 +297,32 @@ public class EnvironmentalTaskRegistry {
         String action = taskInfo.action();
         if (action == null || action.isBlank()) return;
 
+        if (applyForAllZoneAssignment(action, taskInfo)) {
+            return;
+        }
+        if (applyForAllLogicalPlaceAssignment(action, taskInfo)) {
+            return;
+        }
+
         String resolvedAction = resolveMyPlace(action, taskInfo.participantId(), taskInfo.activityId());
 
-        String[] statements = resolvedAction.split(";");
+        String[] statements = resolvedAction.split("\\s*(?:;|&&)\\s*");
         for (String singleStatement : statements) {
             String stmt = singleStatement.trim();
             if (stmt.isEmpty()) continue;
+
+            Matcher itemMatcher = LOGICAL_PLACE_ITEM_ACTION_PATTERN.matcher(stmt);
+            if (itemMatcher.matches()) {
+                environmentDataService.resolveLogicalPlaceId(itemMatcher.group(1).trim())
+                        .flatMap(logicalId -> environmentDataService.getPhysicalPlaces().stream()
+                                .filter(place -> environmentDataService.isPhysicalPlaceInLogicalPlace(
+                                        place.getId(), logicalId))
+                                .findFirst())
+                        .ifPresent(place -> executePlaceAttributeSet(
+                                place.getId(), itemMatcher.group(2),
+                                unquote(itemMatcher.group(3).trim()), taskInfo.activityId()));
+                continue;
+            }
 
             if (stmt.contains("=") && !stmt.contains("==") && !stmt.contains("!=") && !stmt.contains(">=") && !stmt.contains("<=")) {
                 String[] parts = stmt.split("=", 2);
@@ -293,12 +344,100 @@ public class EnvironmentalTaskRegistry {
                 executeSpelStatement(stmt, taskInfo.executionId(), taskInfo);
             }
         }
+
+    }
+
+    private boolean applyForAllLogicalPlaceAssignment(String action, EnvironmentalTaskInfo taskInfo) {
+        Matcher matcher = FOR_ALL_LOGICAL_PLACE_ASSIGNMENT_PATTERN.matcher(action.trim());
+        if (!matcher.matches() || matcher.group(2).contains("myPlace().zone")) {
+            return false;
+        }
+
+        Optional<String> logicalPlaceId = environmentDataService.resolveLogicalPlaceId(matcher.group(2).trim());
+        if (logicalPlaceId.isEmpty()) {
+            return false;
+        }
+
+        Object value = parseValue(unquote(matcher.group(4).trim()));
+        environmentDataService.getPhysicalPlaces().stream()
+                .filter(place -> environmentDataService.isPhysicalPlaceInLogicalPlace(
+                        place.getId(), logicalPlaceId.get()))
+                .forEach(place -> {
+                    if (place.getAttributes() != null) {
+                        place.getAttributes().put(matcher.group(3), value);
+                    }
+                });
+        return true;
+    }
+
+    private boolean applyForAllZoneAssignment(String action, EnvironmentalTaskInfo taskInfo) {
+        Matcher matcher = FOR_ALL_ZONE_ASSIGNMENT_PATTERN.matcher(action.trim());
+        if (!matcher.matches()) {
+            return false;
+        }
+
+        String elementVariable = matcher.group(1);
+        String attributeKey = matcher.group(2);
+        String rawValue = unquote(matcher.group(3).trim());
+        String remainingAction = matcher.group(4);
+        Optional<String> participantPosition = participantDataService.getParticipant(taskInfo.participantId())
+                .map(p -> p.getPosition())
+                .filter(position -> position != null && !position.isBlank());
+
+        if (participantPosition.isEmpty()) {
+            log.warn("[ENVIRONMENTAL] Cannot resolve myPlace().zone for for-all action | activity={} | participant={}",
+                    taskInfo.activityId(), taskInfo.participantId());
+            return true;
+        }
+
+        List<PhysicalPlace> zonePlaces = environmentDataService
+                .getPhysicalPlacesInSameLogicalPlace(participantPosition.get());
+        if (zonePlaces.isEmpty()) {
+            log.warn("[ENVIRONMENTAL] No physical places found in zone for for-all action | activity={} | position={}",
+                    taskInfo.activityId(), participantPosition.get());
+            return true;
+        }
+
+        Object parsedValue = parseValue(rawValue);
+        for (PhysicalPlace place : zonePlaces) {
+            if (place.getAttributes() == null) {
+                log.warn("[ENVIRONMENTAL] Skipping place '{}' with no attributes for for-all action | activity={}",
+                        place.getId(), taskInfo.activityId());
+                continue;
+            }
+            place.getAttributes().put(attributeKey, parsedValue);
+            log.info("[ENVIRONMENTAL] For-all assignment executed | variable={} | place='{}' | {}={} | activity={}",
+                    elementVariable, place.getId(), attributeKey, rawValue, taskInfo.activityId());
+        }
+        if (remainingAction != null && !remainingAction.isBlank()) {
+            EnvironmentalTaskInfo remainingTask = new EnvironmentalTaskInfo(
+                    taskInfo.executionId(),
+                    taskInfo.activityId(),
+                    taskInfo.guardExpression(),
+                    remainingAction.trim(),
+                    taskInfo.participantId(),
+                    taskInfo.timer()
+            );
+            applyActionAssignments(remainingTask);
+        }
+        return true;
     }
 
     private void executePlaceAttributeSet(String placeRef, String attrKey, String rawValue, String activityId) {
         Optional<PhysicalPlace> placeOpt = environmentDataService.getPhysicalPlace(placeRef);
         if (placeOpt.isPresent() && placeOpt.get().getAttributes() != null) {
-            placeOpt.get().getAttributes().put(attrKey, parseValue(rawValue));
+            PhysicalPlace place = placeOpt.get();
+            Object parsedValue = parseValue(rawValue);
+            place.getAttributes().put(attrKey, parsedValue);
+            if ("security_status".equalsIgnoreCase(attrKey)) {
+                String status = String.valueOf(parsedValue);
+                String alarm = "breach".equalsIgnoreCase(status) ? "on" : "safe".equalsIgnoreCase(status) ? "off" : null;
+                if (alarm != null) {
+                    place.getAttributes().put("alarm", alarm);
+                    log.info("[ENVIRONMENTAL] Synchronized alarm with security status | place='{}' | alarm={} | activity={}",
+                            placeRef, alarm, activityId);
+                }
+            }
             log.info("[ENVIRONMENTAL] Assignment executed: set attribute | place='{}' | {}={} | activity={}",
                     placeRef, attrKey, rawValue, activityId);
         }
@@ -432,12 +571,21 @@ public class EnvironmentalTaskRegistry {
     }
 
     private boolean isExecutionNotFoundError(Exception e) {
-        String message = e.getMessage();
-        if (message == null) {
-            return false;
+        Throwable current = e;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null) {
+                String normalized = message.toLowerCase();
+                if (normalized.contains("doesn't exist")
+                        || normalized.contains("execution is null")
+                        || normalized.contains("has no current activity")
+                        || normalized.contains("no current activity")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
         }
-        String normalized = message.toLowerCase();
-        return normalized.contains("doesn't exist") || normalized.contains("execution is null");
+        return false;
     }
 
     private boolean evaluateGuard(String guardExpression, String activityId, String participantId, String executionId) {
@@ -670,7 +818,7 @@ public class EnvironmentalTaskRegistry {
         }
 
         try {
-            String[] statements = resolvedAction.split(";");
+            String[] statements = resolvedAction.split("\\s*(?:;|&&)\\s*");
             for (String singleStatement : statements) {
                 String stmt = singleStatement.trim();
                 if (stmt.isEmpty()) continue;

@@ -37,6 +37,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Scope("singleton")
 public class EnvironmentDataService {
 
+    private static final String BREACHED_ARTWORKS_LOGICAL_PLACE = "Breached Artworks";
+
     private final RepositoryService repositoryService;
     private final ObjectMapper objectMapper;
     private final ExternalAttributeRefreshService externalAttributeRefreshService;
@@ -140,6 +142,49 @@ public class EnvironmentDataService {
 
     public List<LogicalPlace> getLogicalPlaces() {
         return data != null && data.getLogicalPlaces() != null ? data.getLogicalPlaces() : List.of();
+    }
+
+    /**
+     * Returns the physical places belonging to the logical zone containing the
+     * supplied physical place. Entrances and sensors may be outside the
+     * explicit {@code contains} list, so their adjacent place is used to infer
+     * the zone from the environment graph.
+     */
+    public List<PhysicalPlace> getPhysicalPlacesInSameLogicalPlace(String physicalPlaceReference) {
+        Optional<String> physicalPlaceId = resolvePhysicalPlaceId(physicalPlaceReference);
+        if (physicalPlaceId.isEmpty()) {
+            return List.of();
+        }
+
+        Optional<LogicalPlace> logicalPlace = getLogicalPlaces().stream()
+                .filter(candidate -> candidate.getContains() != null
+                        && candidate.getContains().contains(physicalPlaceId.get()))
+                .findFirst();
+
+        if (logicalPlace.isEmpty()) {
+            logicalPlace = getLogicalPlaces().stream()
+                    .filter(candidate -> candidate.getContains() != null)
+                    .filter(candidate -> getEdges().stream().anyMatch(edge ->
+                            isAdjacent(edge, physicalPlaceId.get(), candidate.getContains())))
+                    .findFirst();
+        }
+
+        return logicalPlace
+                .map(place -> place.getContains().stream()
+                        .map(this::getPhysicalPlace)
+                        .flatMap(Optional::stream)
+                        .toList())
+                .orElseGet(List::of);
+    }
+
+    private boolean isAdjacent(Edge edge, String placeId, List<String> zonePlaceIds) {
+        if (edge == null || edge.getSource() == null || edge.getTarget() == null) {
+            return false;
+        }
+        boolean sourceIsCurrent = placeId.equals(edge.getSource());
+        boolean targetIsCurrent = placeId.equals(edge.getTarget());
+        return (sourceIsCurrent && zonePlaceIds.contains(edge.getTarget()))
+                || (targetIsCurrent && zonePlaceIds.contains(edge.getSource()));
     }
 
     public List<View> getViews() {
@@ -269,6 +314,11 @@ public class EnvironmentDataService {
                 .findFirst();
 
         if (logicalPlaceOpt.isEmpty()) {
+            return false;
+        }
+
+        if (BREACHED_ARTWORKS_LOGICAL_PLACE.equalsIgnoreCase(logicalPlaceOpt.get().getName())
+                && !physicalPlaceOpt.get().getName().startsWith("A")) {
             return false;
         }
 

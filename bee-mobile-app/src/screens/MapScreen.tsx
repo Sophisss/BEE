@@ -549,15 +549,6 @@ export const MapScreen: React.FC<Props> = ({route}) => {
     const moveActiveParticipant = async (targetPlaceId: string) => {
         if (!activeParticipantId) return;
 
-        const targetPlace = environment.places.find((p) => p.id === targetPlaceId);
-        if (isPlaceClosed(targetPlace)) {
-            triggerAlert(
-                '⛔ Relocation Denied',
-                `The room "${targetPlace?.name || targetPlaceId}" is currently closed or inaccessible.`
-            );
-            return;
-        }
-
         const allPlannedPlaceIds = activeTourSteps.map((s) => s.placeId);
         const isOffCourseMove = allPlannedPlaceIds.length > 0 && !allPlannedPlaceIds.includes(targetPlaceId);
 
@@ -619,14 +610,6 @@ export const MapScreen: React.FC<Props> = ({route}) => {
         );
 
         if (found) {
-            if (isPlaceClosed(found)) {
-                triggerAlert(
-                    '⛔ Relocation Denied',
-                    `The room "${found.name || found.id}" is currently closed or inaccessible.`
-                );
-                setPositionInput(activeParticipant?.currentPlaceId || '');
-                return;
-            }
             await moveActiveParticipant(found.id);
         } else {
             triggerAlert('Place Not Found', `No matching places found for "${positionInput}".`);
@@ -672,15 +655,6 @@ export const MapScreen: React.FC<Props> = ({route}) => {
             );
 
             if (resolvedPlaceId) {
-                const resolvedPlace = environment.places.find((p) => p.id === resolvedPlaceId);
-                if (isPlaceClosed(resolvedPlace)) {
-                    triggerAlert(
-                        '⛔ Closed Location',
-                        `The place resolved from coordinates ("${resolvedPlace?.name || resolvedPlaceId}") is closed. Relocation blocked.`
-                    );
-                    return;
-                }
-
                 setVisitedPlaceIds((prev) =>
                     prev.includes(resolvedPlaceId) ? prev : [...prev, resolvedPlaceId]
                 );
@@ -1070,7 +1044,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                         <View style={styles.adjacentList}>
                             {adjacentPlaces.map((adj) => {
                                 const closed = isPlaceClosed(adj);
-                                return (
+                                    return (
                                     <TouchableOpacity
                                         key={adj.id}
                                         style={[
@@ -1078,7 +1052,7 @@ export const MapScreen: React.FC<Props> = ({route}) => {
                                             closed && {opacity: 0.6, backgroundColor: '#fef2f2', borderColor: '#ef4444'}
                                         ]}
                                         onPress={() => moveActiveParticipant(adj.id)}
-                                        disabled={closed || isUpdatingPosition}
+                                        disabled={isUpdatingPosition}
                                     >
                                         <View>
                                             <Text style={[styles.adjacentName, closed && {color: '#b91c1c'}]}>

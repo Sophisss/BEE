@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class MovementTaskRegistry {
 
+    private static final String BREACHED_ARTWORKS_LOGICAL_PLACE = "Breached Artworks";
     private static final String BPMN_ERROR_CODE_VAR = "__spaceBpmnErrorCode";
     private static final String BPMN_ERROR_MESSAGE_VAR = "__spaceBpmnErrorMessage";
     private static final String FAILED_MOVEMENT_ERROR_CODE = "failedMovement";
@@ -508,6 +509,8 @@ public class MovementTaskRegistry {
         }
 
         return environmentDataService.getPhysicalPlaces().stream()
+                .filter(physicalPlace -> !BREACHED_ARTWORKS_LOGICAL_PLACE.equalsIgnoreCase(logicalPlace.getName())
+                        || (physicalPlace.getName() != null && physicalPlace.getName().startsWith("A")))
                 .filter(physicalPlace -> matchesAllConditions(physicalPlace, conditions))
                 .toList();
     }
