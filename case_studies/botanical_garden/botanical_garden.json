@@ -1,0 +1,2591 @@
+{
+  "physicalPlaces": [
+    {
+      "id": "place_1",
+      "name": "Entrance",
+      "coordinates": [
+        [
+          13.068797559996774,
+          43.13518531738498
+        ],
+        [
+          13.068871093118785,
+          43.13515906431124
+        ],
+        [
+          13.068897368994724,
+          43.135208070775775
+        ],
+        [
+          13.068818269078042,
+          43.135235946703915
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "place_2",
+      "name": "F1",
+      "coordinates": [
+        [
+          13.068853276863486,
+          43.13531556998299
+        ],
+        [
+          13.06890567939731,
+          43.13529718144042
+        ],
+        [
+          13.068930606250769,
+          43.135345881565826
+        ],
+        [
+          13.068876744036336,
+          43.135360213801306
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 6,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_3",
+      "name": "F2",
+      "coordinates": [
+        [
+          13.06890567939731,
+          43.13529718144042
+        ],
+        [
+          13.068971061860232,
+          43.135284184900314
+        ],
+        [
+          13.069001681468063,
+          43.135328632072714
+        ],
+        [
+          13.068930606250769,
+          43.135345881565826
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_4",
+      "name": "F3",
+      "coordinates": [
+        [
+          13.068971061860232,
+          43.135284184900314
+        ],
+        [
+          13.069029325573114,
+          43.13526623065911
+        ],
+        [
+          13.069056913536603,
+          43.13530488430652
+        ],
+        [
+          13.069001681468063,
+          43.135328632072714
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_5",
+      "name": "F4",
+      "coordinates": [
+        [
+          13.068876744036336,
+          43.135360213801306
+        ],
+        [
+          13.068896472181166,
+          43.13541292099856
+        ],
+        [
+          13.068950446678725,
+          43.13539792501891
+        ],
+        [
+          13.068930606250769,
+          43.135345881565826
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_6",
+      "name": "F5",
+      "coordinates": [
+        [
+          13.068950446678725,
+          43.13539792501891
+        ],
+        [
+          13.069020803284026,
+          43.13537913496921
+        ],
+        [
+          13.069001681468063,
+          43.135328632072714
+        ],
+        [
+          13.068930606250769,
+          43.135345881565826
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_7",
+      "name": "F6",
+      "coordinates": [
+        [
+          13.069020803284026,
+          43.13537913496921
+        ],
+        [
+          13.069096134031707,
+          43.135351830796054
+        ],
+        [
+          13.069056913536603,
+          43.13530488430652
+        ],
+        [
+          13.069001681468063,
+          43.135328632072714
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_8",
+      "name": "F7",
+      "coordinates": [
+        [
+          13.068896472181166,
+          43.13541292099856
+        ],
+        [
+          13.068933907374605,
+          43.13547466670127
+        ],
+        [
+          13.068980269076373,
+          43.13545915448216
+        ],
+        [
+          13.068950446678725,
+          43.13539792501891
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_9",
+      "name": "F8",
+      "coordinates": [
+        [
+          13.068980269076373,
+          43.13545915448216
+        ],
+        [
+          13.069047066306656,
+          43.135434751205025
+        ],
+        [
+          13.069020803284026,
+          43.13537913496921
+        ],
+        [
+          13.068950446678725,
+          43.13539792501891
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_10",
+      "name": "F9",
+      "coordinates": [
+        [
+          13.069047066306656,
+          43.135434751205025
+        ],
+        [
+          13.069124227269253,
+          43.13540512800631
+        ],
+        [
+          13.069096134031707,
+          43.135351830796054
+        ],
+        [
+          13.069020803284026,
+          43.13537913496921
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie officinali",
+        "species": "Specie officinali",
+        "soil_moisture": 10,
+        "min_moisture": 8,
+        "target_moisture": 12,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone16"
+      }
+    },
+    {
+      "id": "place_11",
+      "name": "F10",
+      "coordinates": [
+        [
+          13.06895378906211,
+          43.13551246991753
+        ],
+        [
+          13.069000249221594,
+          43.135491155988376
+        ],
+        [
+          13.069022608461703,
+          43.13552160746272
+        ],
+        [
+          13.068968085826679,
+          43.13554958829266
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 28,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone13"
+      }
+    },
+    {
+      "id": "place_12",
+      "name": "F11",
+      "coordinates": [
+        [
+          13.068968085826679,
+          43.13554958829266
+        ],
+        [
+          13.06899594692778,
+          43.13558203475952
+        ],
+        [
+          13.069054402759024,
+          43.13555611210046
+        ],
+        [
+          13.069022608461703,
+          43.13552160746272
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone13"
+      }
+    },
+    {
+      "id": "place_13",
+      "name": "F12",
+      "coordinates": [
+        [
+          13.069022608461703,
+          43.13552160746272
+        ],
+        [
+          13.069071536961335,
+          43.135493020536586
+        ],
+        [
+          13.069057540088561,
+          43.135463486591306
+        ],
+        [
+          13.069000249221594,
+          43.135491155988376
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone13"
+      }
+    },
+    {
+      "id": "place_14",
+      "name": "F13",
+      "coordinates": [
+        [
+          13.069054402759024,
+          43.13555611210046
+        ],
+        [
+          13.06910582266741,
+          43.135525412317605
+        ],
+        [
+          13.069071536961335,
+          43.135493020536586
+        ],
+        [
+          13.069022608461703,
+          43.13552160746272
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone13"
+      }
+    },
+    {
+      "id": "place_15",
+      "name": "F14",
+      "coordinates": [
+        [
+          13.069071536961335,
+          43.135493020536586
+        ],
+        [
+          13.069130431095973,
+          43.135466845304904
+        ],
+        [
+          13.069111785900391,
+          43.1354380479074
+        ],
+        [
+          13.069057540088561,
+          43.135463486591306
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone13"
+      }
+    },
+    {
+      "id": "place_16",
+      "name": "F15",
+      "coordinates": [
+        [
+          13.06910582266741,
+          43.135525412317605
+        ],
+        [
+          13.069170201361588,
+          43.135493950706206
+        ],
+        [
+          13.069130431095973,
+          43.135466845304904
+        ],
+        [
+          13.069071536961335,
+          43.135493020536586
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone13"
+      }
+    },
+    {
+      "id": "place_17",
+      "name": "F16",
+      "coordinates": [
+        [
+          13.069034252337323,
+          43.13561985597934
+        ],
+        [
+          13.069073047954605,
+          43.135601934465
+        ],
+        [
+          13.069102443117576,
+          43.13563272680534
+        ],
+        [
+          13.06905658274168,
+          43.13564960871193
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone12"
+      }
+    },
+    {
+      "id": "place_18",
+      "name": "F17",
+      "coordinates": [
+        [
+          13.069137576594681,
+          43.13561870694866
+        ],
+        [
+          13.069188056457635,
+          43.135598689399274
+        ],
+        [
+          13.069216073271784,
+          43.13562454048892
+        ],
+        [
+          13.069171966109453,
+          43.135645311423275
+        ]
+      ],
+      "attributes": {
+        "tags": "Piante ornamentali esotiche",
+        "species": "Piante ornamentali esotiche",
+        "soil_moisture": 32.5,
+        "min_moisture": 25,
+        "target_moisture": 40,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone11"
+      }
+    },
+    {
+      "id": "place_19",
+      "name": "F18",
+      "coordinates": [
+        [
+          13.069171966109453,
+          43.135645311423275
+        ],
+        [
+          13.06920215137196,
+          43.13567959291953
+        ],
+        [
+          13.069260180434114,
+          43.135661843987634
+        ],
+        [
+          13.069216073271784,
+          43.13562454048892
+        ]
+      ],
+      "attributes": {
+        "tags": "Piante ornamentali esotiche",
+        "species": "Piante ornamentali esotiche",
+        "soil_moisture": 32.5,
+        "min_moisture": 25,
+        "target_moisture": 40,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone11"
+      }
+    },
+    {
+      "id": "place_20",
+      "name": "F19",
+      "coordinates": [
+        [
+          13.069142530576435,
+          43.13554966405306
+        ],
+        [
+          13.069191603254817,
+          43.13552608995212
+        ],
+        [
+          13.06921675379547,
+          43.13555334684784
+        ],
+        [
+          13.069162784806835,
+          43.13557270361366
+        ],
+        [
+          13.069151042889667,
+          43.13556251805818
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie arbustive di radura e margine del bosco",
+        "species": "Specie arbustive di radura e margine del bosco",
+        "soil_moisture": 26.5,
+        "min_moisture": 18,
+        "target_moisture": 35,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone14"
+      }
+    },
+    {
+      "id": "place_21",
+      "name": "F20",
+      "coordinates": [
+        [
+          13.069254009583734,
+          43.135589564492335
+        ],
+        [
+          13.069297240139282,
+          43.13556994257067
+        ],
+        [
+          13.069324778279988,
+          43.135603878979026
+        ],
+        [
+          13.069273658263397,
+          43.13562182574623
+        ]
+      ],
+      "attributes": {
+        "tags": "Piante acquatiche",
+        "species": "Piante acquatiche",
+        "soil_moisture": 48,
+        "min_moisture": 50,
+        "target_moisture": 100,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone15"
+      }
+    },
+    {
+      "id": "place_22",
+      "name": "F21",
+      "coordinates": [
+        [
+          13.069252902290957,
+          43.13572030559118
+        ],
+        [
+          13.069298243623361,
+          43.13570175277158
+        ],
+        [
+          13.06932114497556,
+          43.13573045744923
+        ],
+        [
+          13.069278739122447,
+          43.13574902709567
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone4"
+      }
+    },
+    {
+      "id": "place_23",
+      "name": "F22",
+      "coordinates": [
+        [
+          13.069298243623361,
+          43.13570175277158
+        ],
+        [
+          13.06935405233281,
+          43.13567570810517
+        ],
+        [
+          13.069385131503548,
+          43.1357118877971
+        ],
+        [
+          13.06932114497556,
+          43.13573045744923
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone4"
+      }
+    },
+    {
+      "id": "place_24",
+      "name": "F23",
+      "coordinates": [
+        [
+          13.069278739122447,
+          43.13574902709567
+        ],
+        [
+          13.069318290236367,
+          43.13578590962925
+        ],
+        [
+          13.069354392594652,
+          43.13576720951829
+        ],
+        [
+          13.06932114497556,
+          43.13573045744923
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone4"
+      }
+    },
+    {
+      "id": "place_25",
+      "name": "F24",
+      "coordinates": [
+        [
+          13.069354392594652,
+          43.13576720951829
+        ],
+        [
+          13.06940420923537,
+          43.13574190143646
+        ],
+        [
+          13.069385131503548,
+          43.1357118877971
+        ],
+        [
+          13.06932114497556,
+          43.13573045744923
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie ornamentali",
+        "species": "Specie ornamentali",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone4"
+      }
+    },
+    {
+      "id": "place_26",
+      "name": "F25",
+      "coordinates": [
+        [
+          13.069215490789645,
+          43.135807534913624
+        ],
+        [
+          13.069258709810892,
+          43.13578842654675
+        ],
+        [
+          13.069292557213574,
+          43.13581693757479
+        ],
+        [
+          13.069248409681196,
+          43.135844442665245
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie appenniniche",
+        "species": "Specie appenniniche",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone5"
+      }
+    },
+    {
+      "id": "place_27",
+      "name": "F26",
+      "coordinates": [
+        [
+          13.069248409681196,
+          43.135844442665245
+        ],
+        [
+          13.069287424450176,
+          43.13587824423692
+        ],
+        [
+          13.069328428885866,
+          43.13585534789357
+        ],
+        [
+          13.069292557213574,
+          43.13581693757479
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie appenniniche",
+        "species": "Specie appenniniche",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone5"
+      }
+    },
+    {
+      "id": "place_28",
+      "name": "F27",
+      "coordinates": [
+        [
+          13.069331407538526,
+          43.13591407859846
+        ],
+        [
+          13.069376380318488,
+          43.135893659328644
+        ],
+        [
+          13.069411874016916,
+          43.13591231698666
+        ],
+        [
+          13.069365720756538,
+          43.13595438349117
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie arboree e arbustive",
+        "species": "Specie arboree e arbustive",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone6"
+      }
+    },
+    {
+      "id": "place_29",
+      "name": "F28",
+      "coordinates": [
+        [
+          13.069365720756538,
+          43.13595438349117
+        ],
+        [
+          13.069418049515203,
+          43.13598935209484
+        ],
+        [
+          13.069477936872342,
+          43.13594678413392
+        ],
+        [
+          13.069411874016916,
+          43.13591231698666
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie arboree e arbustive",
+        "species": "Specie arboree e arbustive",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone6"
+      }
+    },
+    {
+      "id": "place_30",
+      "name": "F29",
+      "coordinates": [
+        [
+          13.069376380318488,
+          43.135893659328644
+        ],
+        [
+          13.06942690311831,
+          43.135857970594685
+        ],
+        [
+          13.069456970130656,
+          43.135879328546054
+        ],
+        [
+          13.069411874016916,
+          43.13591231698666
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie arboree e arbustive",
+        "species": "Specie arboree e arbustive",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "is_accessible": "true",
+        "visitor_count": 0,
+        "zone": "Zone6"
+      }
+    },
+    {
+      "id": "place_31",
+      "name": "F30",
+      "coordinates": [
+        [
+          13.069456970130656,
+          43.135879328546054
+        ],
+        [
+          13.06951491938562,
+          43.13591774969447
+        ],
+        [
+          13.069477936872342,
+          43.13594678413392
+        ],
+        [
+          13.069411874016916,
+          43.13591231698666
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie arboree e arbustive",
+        "species": "Specie arboree e arbustive",
+        "soil_moisture": 13,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone6"
+      }
+    },
+    {
+      "id": "place_32",
+      "name": "F31",
+      "coordinates": [
+        [
+          13.069442161268142,
+          43.135800846717615
+        ],
+        [
+          13.069483944989077,
+          43.13578221474259
+        ],
+        [
+          13.069512355805019,
+          43.13580944262691
+        ],
+        [
+          13.06947058089364,
+          43.13583147566635
+        ]
+      ],
+      "attributes": {
+        "tags": "Palmeto",
+        "species": "Palmeto",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone3"
+      }
+    },
+    {
+      "id": "place_33",
+      "name": "F32",
+      "coordinates": [
+        [
+          13.06947058089364,
+          43.13583147566635
+        ],
+        [
+          13.069514258668969,
+          43.13586944679767
+        ],
+        [
+          13.069568278862256,
+          43.13584013586379
+        ],
+        [
+          13.069512355805019,
+          43.13580944262691
+        ]
+      ],
+      "attributes": {
+        "tags": "Palmeto",
+        "species": "Palmeto",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone3"
+      }
+    },
+    {
+      "id": "place_34",
+      "name": "F33",
+      "coordinates": [
+        [
+          13.069492821804845,
+          43.1360472549886
+        ],
+        [
+          13.069532282776574,
+          43.13607555746003
+        ],
+        [
+          13.06957026914945,
+          43.136045025330674
+        ],
+        [
+          13.069534975906217,
+          43.1360220585606
+        ]
+      ],
+      "attributes": {
+        "tags": "Serre riscaldate",
+        "species": "Serre riscaldate",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone7"
+      }
+    },
+    {
+      "id": "place_35",
+      "name": "F34",
+      "coordinates": [
+        [
+          13.069534975906217,
+          43.1360220585606
+        ],
+        [
+          13.069568344223999,
+          43.13598930963278
+        ],
+        [
+          13.069608679359122,
+          43.13601346212985
+        ],
+        [
+          13.06957026914945,
+          43.136045025330674
+        ]
+      ],
+      "attributes": {
+        "tags": "Serre riscaldate",
+        "species": "Serre riscaldate",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone7"
+      }
+    },
+    {
+      "id": "place_36",
+      "name": "F35",
+      "coordinates": [
+        [
+          13.069122902263992,
+          43.13517765792943
+        ],
+        [
+          13.0691880907426,
+          43.13514238350564
+        ],
+        [
+          13.069236458998406,
+          43.13518169917404
+        ],
+        [
+          13.069169455554176,
+          43.13521141370319
+        ]
+      ],
+      "attributes": {
+        "tags": "Rose antiche",
+        "species": "Rose antiche",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone17"
+      }
+    },
+    {
+      "id": "place_37",
+      "name": "F36",
+      "coordinates": [
+        [
+          13.069169455554176,
+          43.13521141370319
+        ],
+        [
+          13.069221395939774,
+          43.13525962174168
+        ],
+        [
+          13.06929430669249,
+          43.13522237314686
+        ],
+        [
+          13.069236458998406,
+          43.13518169917404
+        ]
+      ],
+      "attributes": {
+        "tags": "Rose antiche",
+        "species": "Rose antiche",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone17"
+      }
+    },
+    {
+      "id": "place_38",
+      "name": "F37",
+      "coordinates": [
+        [
+          13.069221395939774,
+          43.13525962174168
+        ],
+        [
+          13.069277417107946,
+          43.13530000881076
+        ],
+        [
+          13.069342004451444,
+          43.135269298779434
+        ],
+        [
+          13.06929430669249,
+          43.13522237314686
+        ]
+      ],
+      "attributes": {
+        "tags": "Rose antiche",
+        "species": "Rose antiche",
+        "soil_moisture": 22.5,
+        "min_moisture": 15,
+        "target_moisture": 30,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone17"
+      }
+    },
+    {
+      "id": "place_39",
+      "name": "C1",
+      "coordinates": [
+        [
+          13.06923001991655,
+          43.13542180261831
+        ],
+        [
+          13.069279474839671,
+          43.135391143269004
+        ],
+        [
+          13.069314132590844,
+          43.13543439876369
+        ],
+        [
+          13.069259568019284,
+          43.13545715281214
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "place_40",
+      "name": "C2",
+      "coordinates": [
+        [
+          13.069149410010304,
+          43.135313060569416
+        ],
+        [
+          13.069190344999262,
+          43.1352875307532
+        ],
+        [
+          13.069235985026491,
+          43.13532339567044
+        ],
+        [
+          13.069188009820566,
+          43.13534997163649
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "place_41",
+      "name": "C3",
+      "coordinates": [
+        [
+          13.069349206512477,
+          43.1355277687706
+        ],
+        [
+          13.06939512398668,
+          43.135506086220914
+        ],
+        [
+          13.069434556137862,
+          43.135552277635526
+        ],
+        [
+          13.06938426887382,
+          43.13557315023775
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "place_42",
+      "name": "C4",
+      "coordinates": [
+        [
+          13.069485028366557,
+          43.13567034188904
+        ],
+        [
+          13.069528102009272,
+          43.1356510891801
+        ],
+        [
+          13.069558470892638,
+          43.13569143380687
+        ],
+        [
+          13.06951080781456,
+          43.13571102397361
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "place_43",
+      "name": "F38",
+      "coordinates": [
+        [
+          13.069460347146157,
+          43.1354720100116
+        ],
+        [
+          13.069512761503667,
+          43.13544577157057
+        ],
+        [
+          13.06954997407906,
+          43.13547665024919
+        ],
+        [
+          13.06949653085569,
+          43.1355109205021
+        ]
+      ],
+      "attributes": {
+        "tags": "Alberi secolari",
+        "species": "Alberi secolari",
+        "soil_moisture": 21,
+        "min_moisture": 14,
+        "target_moisture": 28,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone2"
+      }
+    },
+    {
+      "id": "place_44",
+      "name": "F39",
+      "coordinates": [
+        [
+          13.06949653085569,
+          43.1355109205021
+        ],
+        [
+          13.06954896833378,
+          43.13556285736286
+        ],
+        [
+          13.069595186375537,
+          43.13553652615616
+        ],
+        [
+          13.06954997407906,
+          43.13547665024919
+        ]
+      ],
+      "attributes": {
+        "tags": "Alberi secolari",
+        "species": "Alberi secolari",
+        "soil_moisture": 21,
+        "min_moisture": 14,
+        "target_moisture": 28,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone1"
+      }
+    },
+    {
+      "id": "place_45",
+      "name": "F40",
+      "coordinates": [
+        [
+          13.06954896833378,
+          43.13556285736286
+        ],
+        [
+          13.069596284603142,
+          43.135607201080376
+        ],
+        [
+          13.069650155557266,
+          43.13558294534084
+        ],
+        [
+          13.069595186375537,
+          43.13553652615616
+        ]
+      ],
+      "attributes": {
+        "tags": "Alberi secolari",
+        "species": "Alberi secolari",
+        "soil_moisture": 12,
+        "min_moisture": 14,
+        "target_moisture": 28,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone1"
+      }
+    },
+    {
+      "id": "place_46",
+      "name": "F41",
+      "coordinates": [
+        [
+          13.069596284603142,
+          43.135607201080376
+        ],
+        [
+          13.069648987967916,
+          43.135652464373806
+        ],
+        [
+          13.069693078916206,
+          43.13561991530244
+        ],
+        [
+          13.069650155557266,
+          43.13558294534084
+        ]
+      ],
+      "attributes": {
+        "tags": "Alberi secolari",
+        "species": "Alberi secolari",
+        "soil_moisture": 21,
+        "min_moisture": 14,
+        "target_moisture": 28,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone1"
+      }
+    },
+    {
+      "id": "place_47",
+      "name": "F42",
+      "coordinates": [
+        [
+          13.069648907045883,
+          43.13589772925309
+        ],
+        [
+          13.069687980828059,
+          43.13586391480101
+        ],
+        [
+          13.069723262834923,
+          43.13588371583097
+        ],
+        [
+          13.069696616365125,
+          43.13591467021908
+        ]
+      ],
+      "attributes": {
+        "tags": "Serre riscaldate",
+        "species": "Serre riscaldate",
+        "soil_moisture": 37.5,
+        "min_moisture": 30,
+        "target_moisture": 45,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone8"
+      }
+    },
+    {
+      "id": "place_48",
+      "name": "F43",
+      "coordinates": [
+        [
+          13.069725933262047,
+          43.135736713911456
+        ],
+        [
+          13.069770475061672,
+          43.135699997123425
+        ],
+        [
+          13.069805294656913,
+          43.13573477345676
+        ],
+        [
+          13.06976968896191,
+          43.13576230259744
+        ]
+      ],
+      "attributes": {
+        "tags": "Grotte fredde",
+        "species": "Grotte fredde",
+        "soil_moisture": 42.5,
+        "min_moisture": 35,
+        "target_moisture": 50,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone10"
+      }
+    },
+    {
+      "id": "place_49",
+      "name": "F44",
+      "coordinates": [
+        [
+          13.06976968896191,
+          43.13576230259744
+        ],
+        [
+          13.069813930193979,
+          43.13579611710571
+        ],
+        [
+          13.069844923333035,
+          43.135770933398106
+        ],
+        [
+          13.069805294656913,
+          43.13573477345676
+        ]
+      ],
+      "attributes": {
+        "tags": "Grotte fredde",
+        "species": "Grotte fredde",
+        "soil_moisture": 42.5,
+        "min_moisture": 35,
+        "target_moisture": 50,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone10"
+      }
+    },
+    {
+      "id": "place_50",
+      "name": "S1",
+      "coordinates": [
+        [
+          13.069624422350422,
+          43.13572360318591
+        ],
+        [
+          13.069659068541306,
+          43.135699668089586
+        ],
+        [
+          13.069690870900704,
+          43.135725670192386
+        ],
+        [
+          13.069657265135977,
+          43.13575092984942
+        ]
+      ],
+      "attributes": {
+        "tags": []
+      }
+    },
+    {
+      "id": "place_51",
+      "name": "C5",
+      "coordinates": [
+        [
+          13.069606434538276,
+          43.135810265535895
+        ],
+        [
+          13.069641022927703,
+          43.135791637190664
+        ],
+        [
+          13.069666663652221,
+          43.13581505760931
+        ],
+        [
+          13.069633901788704,
+          43.13584006412705
+        ]
+      ],
+      "attributes": {
+        "tags": [],
+        "is_accessible": "true"
+      }
+    },
+    {
+      "id": "place_52",
+      "name": "F45",
+      "coordinates": [
+        [
+          13.06973641844561,
+          43.13592659976101
+        ],
+        [
+          13.06977030165731,
+          43.135895485080965
+        ],
+        [
+          13.069805294656913,
+          43.135911928280194
+        ],
+        [
+          13.069778740669438,
+          43.135944215657446
+        ]
+      ],
+      "attributes": {
+        "tags": "Specie arbustive della flora locale",
+        "species": "Specie arbustive della flora locale",
+        "soil_moisture": 12,
+        "min_moisture": 14,
+        "target_moisture": 28,
+        "soil_status": "",
+        "irrigation_status": "",
+        "sprinkler_status": "off",
+        "visitor_count": 0,
+        "is_accessible": "true",
+        "zone": "Zone9"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "Edge_dqtuv31w0mc",
+      "name": "Entrance>F1",
+      "source": "place_1",
+      "target": "place_2",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ttq9u6apm68",
+      "name": "F1>F2",
+      "source": "place_2",
+      "target": "place_3",
+      "attributes": []
+    },
+    {
+      "id": "Edge_exg46dm9gp",
+      "name": "F1>F4",
+      "source": "place_2",
+      "target": "place_5",
+      "attributes": []
+    },
+    {
+      "id": "Edge_fakx5xp47a",
+      "name": "F4>F5",
+      "source": "place_5",
+      "target": "place_6",
+      "attributes": []
+    },
+    {
+      "id": "Edge_jcv0syih4w",
+      "name": "F2>F5",
+      "source": "place_3",
+      "target": "place_6",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ig0jnrdzrz",
+      "name": "F2>F3",
+      "source": "place_3",
+      "target": "place_4",
+      "attributes": []
+    },
+    {
+      "id": "Edge_odybgkozguo",
+      "name": "F3>F6",
+      "source": "place_4",
+      "target": "place_7",
+      "attributes": []
+    },
+    {
+      "id": "Edge_pyrh35qo44e",
+      "name": "F6>F5",
+      "source": "place_7",
+      "target": "place_6",
+      "attributes": []
+    },
+    {
+      "id": "Edge_62s3naj6r3m",
+      "name": "F4>F7",
+      "source": "place_5",
+      "target": "place_8",
+      "attributes": []
+    },
+    {
+      "id": "Edge_cymoncuyfj",
+      "name": "F7>F8",
+      "source": "place_8",
+      "target": "place_9",
+      "attributes": []
+    },
+    {
+      "id": "Edge_oueeq57y0xp",
+      "name": "F5>F8",
+      "source": "place_6",
+      "target": "place_9",
+      "attributes": []
+    },
+    {
+      "id": "Edge_9501n88tcb",
+      "name": "F8>F9",
+      "source": "place_9",
+      "target": "place_10",
+      "attributes": []
+    },
+    {
+      "id": "Edge_3dsfeksmkl4",
+      "name": "F6>F9",
+      "source": "place_7",
+      "target": "place_10",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6jly5vdyhbk",
+      "name": "F7>F10",
+      "source": "place_8",
+      "target": "place_11",
+      "attributes": []
+    },
+    {
+      "id": "Edge_st68ucelemh",
+      "name": "F10>F12",
+      "source": "place_11",
+      "target": "place_13",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ggue3fo71hj",
+      "name": "F10>F11",
+      "source": "place_11",
+      "target": "place_12",
+      "attributes": []
+    },
+    {
+      "id": "Edge_8dviyn0ztdk",
+      "name": "F11>F13",
+      "source": "place_12",
+      "target": "place_14",
+      "attributes": []
+    },
+    {
+      "id": "Edge_xlzs0b9hnqa",
+      "name": "F12>F13",
+      "source": "place_13",
+      "target": "place_14",
+      "attributes": []
+    },
+    {
+      "id": "Edge_gfw6potbvp",
+      "name": "F12>F14",
+      "source": "place_13",
+      "target": "place_15",
+      "attributes": []
+    },
+    {
+      "id": "Edge_xivnmdmynqn",
+      "name": "F14>F15",
+      "source": "place_15",
+      "target": "place_16",
+      "attributes": []
+    },
+    {
+      "id": "Edge_lbesctto3sj",
+      "name": "F13>F15",
+      "source": "place_14",
+      "target": "place_16",
+      "attributes": []
+    },
+    {
+      "id": "Edge_o34an3mezz",
+      "name": "F11>F16",
+      "source": "place_12",
+      "target": "place_17",
+      "attributes": []
+    },
+    {
+      "id": "Edge_a2sqlt7nl7w",
+      "name": "F16>F19",
+      "source": "place_17",
+      "target": "place_20",
+      "attributes": []
+    },
+    {
+      "id": "Edge_noiyfolcr7l",
+      "name": "F16>F17",
+      "source": "place_17",
+      "target": "place_18",
+      "attributes": []
+    },
+    {
+      "id": "Edge_sanlmm6n14c",
+      "name": "F17>F18",
+      "source": "place_18",
+      "target": "place_19",
+      "attributes": []
+    },
+    {
+      "id": "Edge_dxr3fejj4kw",
+      "name": "F19>F20",
+      "source": "place_20",
+      "target": "place_21",
+      "attributes": []
+    },
+    {
+      "id": "Edge_3txiyfjf9yi",
+      "name": "F17>F20",
+      "source": "place_18",
+      "target": "place_21",
+      "attributes": []
+    },
+    {
+      "id": "Edge_lquca3jw4v",
+      "name": "F18>F20",
+      "source": "place_19",
+      "target": "place_21",
+      "attributes": []
+    },
+    {
+      "id": "Edge_yckb4ki0wic",
+      "name": "F18>F21",
+      "source": "place_19",
+      "target": "place_22",
+      "attributes": []
+    },
+    {
+      "id": "Edge_4erd3z6l0v3",
+      "name": "F20>F22",
+      "source": "place_21",
+      "target": "place_23",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6mwf6l46v0f",
+      "name": "F21>F22",
+      "source": "place_22",
+      "target": "place_23",
+      "attributes": []
+    },
+    {
+      "id": "Edge_m2v1t3xhk7s",
+      "name": "F21>F23",
+      "source": "place_22",
+      "target": "place_24",
+      "attributes": []
+    },
+    {
+      "id": "Edge_5tkcnd0kqcv",
+      "name": "F23>F24",
+      "source": "place_24",
+      "target": "place_25",
+      "attributes": []
+    },
+    {
+      "id": "Edge_fv99rz1grc9",
+      "name": "F22>F24",
+      "source": "place_23",
+      "target": "place_25",
+      "attributes": []
+    },
+    {
+      "id": "Edge_5eef26jwf4y",
+      "name": "F16>F21",
+      "source": "place_17",
+      "target": "place_22",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ft0adliano9",
+      "name": "F23>F25",
+      "source": "place_24",
+      "target": "place_26",
+      "attributes": []
+    },
+    {
+      "id": "Edge_rvarsalxol",
+      "name": "F25>F26",
+      "source": "place_26",
+      "target": "place_27",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ax6bb8wboul",
+      "name": "F16>F25",
+      "source": "place_17",
+      "target": "place_26",
+      "attributes": []
+    },
+    {
+      "id": "Edge_58hknkwhe74",
+      "name": "F18>F25",
+      "source": "place_19",
+      "target": "place_26",
+      "attributes": []
+    },
+    {
+      "id": "Edge_uh9w9b0ia7o",
+      "name": "F26>F27",
+      "source": "place_27",
+      "target": "place_28",
+      "attributes": []
+    },
+    {
+      "id": "Edge_s1ib0dp9y9c",
+      "name": "F27>F28",
+      "source": "place_28",
+      "target": "place_29",
+      "attributes": []
+    },
+    {
+      "id": "Edge_tfzhz1ck3v",
+      "name": "F27>F29",
+      "source": "place_28",
+      "target": "place_30",
+      "attributes": []
+    },
+    {
+      "id": "Edge_qor4p0tg8a",
+      "name": "F28>F30",
+      "source": "place_29",
+      "target": "place_31",
+      "attributes": []
+    },
+    {
+      "id": "Edge_8e5k4vv9vzp",
+      "name": "F29>F30",
+      "source": "place_30",
+      "target": "place_31",
+      "attributes": []
+    },
+    {
+      "id": "Edge_mhltn718ks",
+      "name": "F23>F29",
+      "source": "place_24",
+      "target": "place_30",
+      "attributes": []
+    },
+    {
+      "id": "Edge_t0o5dzuhv",
+      "name": "F24>F31",
+      "source": "place_25",
+      "target": "place_32",
+      "attributes": []
+    },
+    {
+      "id": "Edge_lv1u0vl9s9",
+      "name": "F26>F31",
+      "source": "place_27",
+      "target": "place_32",
+      "attributes": []
+    },
+    {
+      "id": "Edge_mcm738rcxva",
+      "name": "F29>F31",
+      "source": "place_30",
+      "target": "place_32",
+      "attributes": []
+    },
+    {
+      "id": "Edge_fpbvfwc04y6",
+      "name": "F31>F32",
+      "source": "place_32",
+      "target": "place_33",
+      "attributes": []
+    },
+    {
+      "id": "Edge_gh2pth0vpvh",
+      "name": "F32>F30",
+      "source": "place_33",
+      "target": "place_31",
+      "attributes": []
+    },
+    {
+      "id": "Edge_i37gilpk54",
+      "name": "F28>F33",
+      "source": "place_29",
+      "target": "place_34",
+      "attributes": []
+    },
+    {
+      "id": "Edge_oyj2lyb1ehj",
+      "name": "F33>F34",
+      "source": "place_34",
+      "target": "place_35",
+      "attributes": []
+    },
+    {
+      "id": "Edge_hhcb7v3l1rq",
+      "name": "F31>C4",
+      "source": "place_32",
+      "target": "place_42",
+      "attributes": []
+    },
+    {
+      "id": "Edge_3wfxqkcppzf",
+      "name": "C4>C3",
+      "source": "place_42",
+      "target": "place_41",
+      "attributes": []
+    },
+    {
+      "id": "Edge_llpgzutr2js",
+      "name": "C3>C1",
+      "source": "place_41",
+      "target": "place_39",
+      "attributes": []
+    },
+    {
+      "id": "Edge_oh6i2xalpr",
+      "name": "C1>C2",
+      "source": "place_39",
+      "target": "place_40",
+      "attributes": []
+    },
+    {
+      "id": "Edge_jjri9c0vkpc",
+      "name": "C2>F35",
+      "source": "place_40",
+      "target": "place_36",
+      "attributes": []
+    },
+    {
+      "id": "Edge_9l0ezlw0udj",
+      "name": "F35>F36",
+      "source": "place_36",
+      "target": "place_37",
+      "attributes": []
+    },
+    {
+      "id": "Edge_veew656dsdp",
+      "name": "F36>F37",
+      "source": "place_37",
+      "target": "place_38",
+      "attributes": []
+    },
+    {
+      "id": "Edge_jic61hk9ke",
+      "name": "F19>C1",
+      "source": "place_20",
+      "target": "place_39",
+      "attributes": []
+    },
+    {
+      "id": "Edge_lejcodw8rq",
+      "name": "F20>C3",
+      "source": "place_21",
+      "target": "place_41",
+      "attributes": []
+    },
+    {
+      "id": "Edge_7w3lid7l8ts",
+      "name": "F22>C3",
+      "source": "place_23",
+      "target": "place_41",
+      "attributes": []
+    },
+    {
+      "id": "Edge_2w6tmh98c53",
+      "name": "C3>F38",
+      "source": "place_41",
+      "target": "place_43",
+      "attributes": []
+    },
+    {
+      "id": "Edge_hbqxv1yp9lm",
+      "name": "F39>F38",
+      "source": "place_44",
+      "target": "place_43",
+      "attributes": []
+    },
+    {
+      "id": "Edge_3oqgwxkjf05",
+      "name": "F39>F40",
+      "source": "place_44",
+      "target": "place_45",
+      "attributes": []
+    },
+    {
+      "id": "Edge_52fxj9txkqx",
+      "name": "F40>F41",
+      "source": "place_45",
+      "target": "place_46",
+      "attributes": []
+    },
+    {
+      "id": "Edge_k5d8lb3y2xp",
+      "name": "C4>S1",
+      "source": "place_42",
+      "target": "place_50",
+      "attributes": []
+    },
+    {
+      "id": "Edge_ghgsro6yrg",
+      "name": "S1>F43",
+      "source": "place_50",
+      "target": "place_48",
+      "attributes": []
+    },
+    {
+      "id": "Edge_6e5fl3ljdm2",
+      "name": "F43>F44",
+      "source": "place_48",
+      "target": "place_49",
+      "attributes": []
+    },
+    {
+      "id": "Edge_c0kk0vugpe",
+      "name": "F32>C5",
+      "source": "place_33",
+      "target": "place_51",
+      "attributes": []
+    },
+    {
+      "id": "Edge_s8zz9r6juza",
+      "name": "C5>F42",
+      "source": "place_51",
+      "target": "place_47",
+      "attributes": []
+    },
+    {
+      "id": "Edge_xoowbc3l4e",
+      "name": "C4>C5",
+      "source": "place_42",
+      "target": "place_51",
+      "attributes": []
+    },
+    {
+      "id": "Edge_bsz1hita2xr",
+      "name": "C5>S1",
+      "source": "place_51",
+      "target": "place_50",
+      "attributes": []
+    },
+    {
+      "id": "Edge_4ndtm11o5i3",
+      "name": "F42>F45",
+      "source": "place_47",
+      "target": "place_52",
+      "attributes": []
+    }
+  ],
+  "logicalPlaces": [
+    {
+      "id": "LogicalPlace_1",
+      "name": "Zone1",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone1"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_2",
+      "name": "Zone2",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone2"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_3",
+      "name": "Zone3",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone3"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_4",
+      "name": "Zone4",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone4"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_5",
+      "name": "Zone5",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone5"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_6",
+      "name": "Zone6",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone6"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_7",
+      "name": "Zone7",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone7"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_8",
+      "name": "Zone8",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone8"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_9",
+      "name": "Zone9",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone9"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_10",
+      "name": "Zone10",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone10"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_11",
+      "name": "Zone11",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone11"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_12",
+      "name": "Zone12",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone12"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_13",
+      "name": "Zone13",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone13"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_14",
+      "name": "Zone14",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone14"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_15",
+      "name": "Zone15",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone15"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_16",
+      "name": "Zone16",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone16"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_17",
+      "name": "Zone17",
+      "conditions": [
+        {
+          "attribute": "zone",
+          "operator": "==",
+          "value": "Zone17"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_DryAreas",
+      "name": "Dry Areas",
+      "conditions": [
+        {
+          "attribute": "soil_status",
+          "operator": "==",
+          "value": "dry"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_MoistAreas",
+      "name": "Moist Areas",
+      "conditions": [
+        {
+          "attribute": "soil_status",
+          "operator": "==",
+          "value": "moist"
+        }
+      ]
+    }
+  ],
+  "views": [
+    {
+      "id": "View_1",
+      "name": "Specie officinali",
+      "logicalPlaces": [
+        "LogicalPlace_16"
+      ]
+    },
+    {
+      "id": "View_2",
+      "name": "Specie ornamentali",
+      "logicalPlaces": [
+        "LogicalPlace_4",
+        "LogicalPlace_12",
+        "LogicalPlace_13"
+      ]
+    },
+    {
+      "id": "View_3",
+      "name": "Specie arbustive di radura e margine del bosco",
+      "logicalPlaces": [
+        "LogicalPlace_14"
+      ]
+    },
+    {
+      "id": "View_4",
+      "name": "Piante acquatiche",
+      "logicalPlaces": [
+        "LogicalPlace_15"
+      ]
+    },
+    {
+      "id": "View_5",
+      "name": "Piante ornamentali esotiche",
+      "logicalPlaces": [
+        "LogicalPlace_11"
+      ]
+    },
+    {
+      "id": "View_6",
+      "name": "Specie appenniniche",
+      "logicalPlaces": [
+        "LogicalPlace_5"
+      ]
+    },
+    {
+      "id": "View_7",
+      "name": "Specie arboree e arbustive",
+      "logicalPlaces": [
+        "LogicalPlace_6"
+      ]
+    },
+    {
+      "id": "View_8",
+      "name": "Palmeto",
+      "logicalPlaces": [
+        "LogicalPlace_3"
+      ]
+    },
+    {
+      "id": "View_9",
+      "name": "Serre riscaldate",
+      "logicalPlaces": [
+        "LogicalPlace_7",
+        "LogicalPlace_8"
+      ]
+    },
+    {
+      "id": "View_10",
+      "name": "Grotte fredde",
+      "logicalPlaces": [
+        "LogicalPlace_10"
+      ]
+    },
+    {
+      "id": "View_11",
+      "name": "Alberi secolari",
+      "logicalPlaces": [
+        "LogicalPlace_1",
+        "LogicalPlace_2"
+      ]
+    },
+    {
+      "id": "View_12",
+      "name": "Specie arbustive della flora locale",
+      "logicalPlaces": [
+        "LogicalPlace_9"
+      ]
+    },
+    {
+      "id": "View_13",
+      "name": "Rose antiche",
+      "logicalPlaces": [
+        "LogicalPlace_17"
+      ]
+    }
+  ]
+}
