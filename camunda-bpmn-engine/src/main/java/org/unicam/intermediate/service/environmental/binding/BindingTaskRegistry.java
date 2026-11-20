@@ -243,8 +243,21 @@ public class BindingTaskRegistry {
         view.put("executionId", taskInfo.executionId());
         view.put("action", "binding");
         view.put("counterpartParticipantId", counterpartParticipantId);
-        view.put("message", "Move to same place as " + counterpartParticipantId + " (binding)");
+        view.put("message", "Move to same place as " + getParticipantDisplayName(counterpartParticipantId) + " (binding)");
         return view;
+    }
+
+    private String getParticipantDisplayName(String participantId) {
+        if (participantId == null || participantId.isBlank()) {
+            return "the other participant";
+        }
+
+        Optional<org.unicam.intermediate.models.pojo.Participant> participant =
+                participantDataService.getParticipant(participantId);
+        return participant
+                .map(org.unicam.intermediate.models.pojo.Participant::getName)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(participantId);
     }
 
     private boolean isPairAlreadyAtSamePosition(BindingPair pair) {

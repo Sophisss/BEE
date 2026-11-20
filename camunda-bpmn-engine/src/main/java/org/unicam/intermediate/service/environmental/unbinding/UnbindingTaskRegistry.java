@@ -144,8 +144,21 @@ public class UnbindingTaskRegistry {
         view.put("executionId", taskInfo.executionId());
         view.put("action", "unbinding");
         view.put("counterpartParticipantId", counterpartParticipantId);
-        view.put("message", "Move to same place as " + counterpartParticipantId + " (unbinding)");
+        view.put("message", "Move to same place as " + getParticipantDisplayName(counterpartParticipantId) + " (unbinding)");
         return view;
+    }
+
+    private String getParticipantDisplayName(String participantId) {
+        if (participantId == null || participantId.isBlank()) {
+            return "the other participant";
+        }
+
+        Optional<org.unicam.intermediate.models.pojo.Participant> participant =
+                participantDataService.getParticipant(participantId);
+        return participant
+                .map(org.unicam.intermediate.models.pojo.Participant::getName)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(participantId);
     }
 
     private boolean isPairAlreadyAtSamePosition(UnbindingPair pair) {
