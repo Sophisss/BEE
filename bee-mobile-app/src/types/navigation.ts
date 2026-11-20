@@ -3,6 +3,8 @@ export interface PendingAction {
     action?: string;
     message?: string;
     activityId?: string;
+    type?: string;
+    status?: string;
 }
 
 export interface Participant {

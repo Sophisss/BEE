@@ -39,15 +39,13 @@ export const PendingActionsCard: React.FC<PendingActionsCardProps> = ({
 
                         return (
                             <View key={uniqueKey} style={styles.actionItem}>
+                                <Text style={localStyles.typeText}>
+                                    {(act.type || 'task').toUpperCase()}
+                                </Text>
                                 <Text style={styles.actionName}>
                                     {act.message || `Execute action: ${act.action || 'unknown'}`}
                                 </Text>
 
-                                {!!act.activityId && (
-                                    <Text style={styles.actionMeta}>
-                                        Activity ID: {act.activityId}
-                                    </Text>
-                                )}
                             </View>
                         );
                     })}
@@ -68,5 +66,11 @@ const localStyles = StyleSheet.create({
     errorText: {
         color: '#F87171',
         fontSize: 13,
+    },
+    typeText: {
+        color: '#38BDF8',
+        fontSize: 10,
+        fontWeight: '700',
+        marginBottom: 2,
     },
 });

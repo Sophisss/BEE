@@ -3,8 +3,14 @@ package org.unicam.intermediate.service.environmental;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.OptimisticLockingException;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.model.bpmn.BpmnModelInstance;
+import org.camunda.bpm.model.bpmn.instance.FlowElement;
+import org.camunda.bpm.model.bpmn.instance.IntermediateCatchEvent;
+import org.camunda.bpm.model.bpmn.instance.SequenceFlow;
+import org.camunda.bpm.model.bpmn.instance.TimerEventDefinition;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -58,6 +64,7 @@ public class EnvironmentalTaskRegistry {
 
     private final EnvironmentDataService environmentDataService;
     private final RuntimeService runtimeService;
+    private final RepositoryService repositoryService;
     private final ParticipantDataService participantDataService;
     private final ParticipantService participantService;
     private final UserParticipantMappingService userParticipantMappingService;
@@ -77,6 +84,7 @@ public class EnvironmentalTaskRegistry {
 
     public EnvironmentalTaskRegistry(EnvironmentDataService environmentDataService,
                                      RuntimeService runtimeService,
+                                     RepositoryService repositoryService,
                                      ParticipantDataService participantDataService,
                                      ParticipantService participantService,
                                      UserParticipantMappingService userParticipantMappingService,
@@ -86,6 +94,7 @@ public class EnvironmentalTaskRegistry {
                                      WebSocketSessionManager webSocketSessionManager) {
         this.environmentDataService = environmentDataService;
         this.runtimeService = runtimeService;
+        this.repositoryService = repositoryService;
         this.participantDataService = participantDataService;
         this.participantService = participantService;
         this.userParticipantMappingService = userParticipantMappingService;
@@ -164,31 +173,92 @@ public class EnvironmentalTaskRegistry {
                 continue;
             }
 
-            boolean guardSatisfied = evaluateGuard(taskInfo.guardExpression(), taskInfo.activityId(), taskInfo.participantId(), taskInfo.executionId());
-            if (!guardSatisfied) {
-                continue;
-            }
-
-            boolean actionSatisfied = evaluateActionGuard(
-                    action,
-                    taskInfo.activityId(),
-                    taskInfo.participantId(),
-                    taskInfo.executionId(),
-                    false
-            );
-            if (actionSatisfied) {
-                continue;
-            }
+            boolean guardSatisfied = evaluateGuard(taskInfo.guardExpression(), taskInfo.activityId(),
+                    taskInfo.participantId(), taskInfo.executionId());
 
             Map<String, String> actionView = new LinkedHashMap<>();
             actionView.put("executionId", taskInfo.executionId());
             actionView.put("activityId", taskInfo.activityId());
             actionView.put("action", action);
-            actionView.put("message", toHumanReadableAction(action));
+            actionView.put("message", resolveTaskName(taskInfo));
+            actionView.put("type", "environmental");
+            String status = guardSatisfied
+                    ? (actionTimerStartByExecutionId.containsKey(taskInfo.executionId())
+                    ? "TIMER_WAITING" : "READY")
+                    : "WAITING";
+            actionView.put("status", status);
+            if (taskInfo.timer() != null) {
+                actionView.put("timer", String.valueOf(taskInfo.timer()));
+            }
             pendingActions.add(actionView);
         }
 
         return pendingActions;
+    }
+
+    public List<Map<String, String>> getPendingTimerActionsForParticipant(String participantId) {
+        if (participantId == null || participantId.isBlank()) {
+            return List.of();
+        }
+
+        List<Map<String, String>> pendingTimers = new ArrayList<>();
+        List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery()
+                .variableValueEquals("participantId", participantId)
+                .active()
+                .list();
+
+        for (ProcessInstance processInstance : processInstances) {
+            BpmnModelInstance model = repositoryService.getBpmnModelInstance(processInstance.getProcessDefinitionId());
+            for (String activityId : runtimeService.getActiveActivityIds(processInstance.getId())) {
+                FlowElement element = model.getModelElementById(activityId);
+                if (!(element instanceof IntermediateCatchEvent timerEvent)
+                        || timerEvent.getEventDefinitions().stream()
+                        .noneMatch(TimerEventDefinition.class::isInstance)) {
+                    continue;
+                }
+
+                String previousTaskName = timerEvent.getIncoming().stream()
+                        .map(SequenceFlow::getSource)
+                        .filter(Objects::nonNull)
+                        .map(FlowElement::getName)
+                        .filter(name -> name != null && !name.isBlank())
+                        .findFirst()
+                        .orElse(activityId);
+
+                Map<String, String> timerView = new LinkedHashMap<>();
+                timerView.put("executionId", processInstance.getId());
+                timerView.put("activityId", activityId);
+                timerView.put("action", "environmental");
+                timerView.put("message", previousTaskName);
+                timerView.put("type", "environmental");
+                pendingTimers.add(timerView);
+            }
+        }
+
+        return pendingTimers;
+    }
+
+    private String resolveTaskName(EnvironmentalTaskInfo taskInfo) {
+        try {
+            Execution execution = runtimeService.createExecutionQuery()
+                    .executionId(taskInfo.executionId())
+                    .singleResult();
+            ProcessInstance processInstance = execution == null ? null
+                    : runtimeService.createProcessInstanceQuery()
+                    .processInstanceId(execution.getProcessInstanceId())
+                    .singleResult();
+            if (processInstance != null && processInstance.getProcessDefinitionId() != null) {
+                BpmnModelInstance model = repositoryService.getBpmnModelInstance(processInstance.getProcessDefinitionId());
+                FlowElement element = model.getModelElementById(taskInfo.activityId());
+                if (element != null && element.getName() != null && !element.getName().isBlank()) {
+                    return element.getName();
+                }
+            }
+        } catch (Exception e) {
+            log.debug("[EnvironmentalRegistry] Could not resolve task name for activity {}: {}",
+                    taskInfo.activityId(), e.getMessage());
+        }
+        return taskInfo.activityId();
     }
 
     @Scheduled(fixedRate = 2000)

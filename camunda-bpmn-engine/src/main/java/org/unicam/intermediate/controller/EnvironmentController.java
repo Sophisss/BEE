@@ -279,10 +279,16 @@ public class EnvironmentController {
 
             // Aggregate pending actions and movements for the participant and any resolved participants
             for (String targetIdCandidate : targetIds) {
-                pendingActions.addAll(environmentalTaskRegistry.getPendingActionsForParticipant(targetIdCandidate));
-                pendingActions.addAll(bindingTaskRegistry.getPendingBindingsForParticipant(targetIdCandidate));
-                pendingActions.addAll(unbindingTaskRegistry.getPendingUnbindingsForParticipant(targetIdCandidate));
-                pendingMovements.addAll(movementTaskRegistry.getPendingMovementsForParticipant(targetIdCandidate));
+                addPendingActions(pendingActions,
+                        environmentalTaskRegistry.getPendingActionsForParticipant(targetIdCandidate), "environmental");
+                addPendingActions(pendingActions,
+                        environmentalTaskRegistry.getPendingTimerActionsForParticipant(targetIdCandidate), "timer");
+                addPendingActions(pendingActions,
+                        bindingTaskRegistry.getPendingBindingsForParticipant(targetIdCandidate), "binding");
+                addPendingActions(pendingActions,
+                        unbindingTaskRegistry.getPendingUnbindingsForParticipant(targetIdCandidate), "unbinding");
+                addPendingActions(pendingMovements,
+                        movementTaskRegistry.getPendingMovementsForParticipant(targetIdCandidate), "movement");
             }
 
             if (targetId == null && !pendingMovements.isEmpty()) {
@@ -314,6 +320,7 @@ public class EnvironmentController {
                 updatedMovement.put("message", messageText);
                 updatedMovement.put("targetPlaceId", targetId);
                 updatedMovement.put("description", messageText);
+                updatedMovement.put("type", "movement");
                 finalPendingActions.add(updatedMovement);
             }
 
@@ -323,6 +330,17 @@ public class EnvironmentController {
             log.error("[Environment API] Failed to retrieve pending actions for participant: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Response.error("Failed to retrieve pending actions: " + e.getMessage()));
+        }
+
+    }
+
+    private void addPendingActions(List<Map<String, String>> destination,
+                                   List<Map<String, String>> actions,
+                                   String type) {
+        for (Map<String, String> action : actions) {
+            Map<String, String> typedAction = new LinkedHashMap<>(action);
+            typedAction.putIfAbsent("type", type);
+            destination.add(typedAction);
         }
     }
 

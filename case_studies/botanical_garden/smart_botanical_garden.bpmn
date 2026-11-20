@@ -365,6 +365,7 @@ myPlace().visitor_count ++</bpmn:text>
       <bpmn:extensionElements>
         <space:type>environmental</space:type>
         <space:action>myPlace().visitor_count--</space:action>
+        <space:timer>15</space:timer>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_09g7vye</bpmn:incoming>
       <bpmn:outgoing>Flow_0z1vkkt</bpmn:outgoing>
@@ -378,7 +379,7 @@ myPlace().visitor_count ++</bpmn:text>
       <bpmn:incoming>Flow_1jp5gvm</bpmn:incoming>
       <bpmn:outgoing>Flow_09g7vye</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1xdnglt">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PTS</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT10S</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
   </bpmn:process>
@@ -441,7 +442,6 @@ myPlace().visitor_count ++</bpmn:text>
       </bpmn:dataOutputAssociation>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_008rqoe" sourceRef="Activity_1yp2tla" targetRef="Event_0xerffk" />
-    <bpmn:sequenceFlow id="Flow_0bxlsng" sourceRef="Event_0xerffk" targetRef="Activity_0ugaerd" />
     <bpmn:intermediateThrowEvent id="Event_0qs1i63" name="Communicate visit settings">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="" />
@@ -503,25 +503,11 @@ myPlace().visitor_count ++</bpmn:text>
         <bpmn:targetRef>Property_10xl4y2</bpmn:targetRef>
       </bpmn:dataInputAssociation>
     </bpmn:task>
-    <bpmn:task id="Activity_1yp2tla" name="Observe plants">
-      <bpmn:extensionElements>
-        <space:type>environmental</space:type>
-        <space:action>myPlace().visitor_count ++</space:action>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_033cwth</bpmn:incoming>
-      <bpmn:outgoing>Flow_008rqoe</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:intermediateCatchEvent id="Event_0xerffk">
-      <bpmn:incoming>Flow_008rqoe</bpmn:incoming>
-      <bpmn:outgoing>Flow_0bxlsng</bpmn:outgoing>
-      <bpmn:timerEventDefinition id="TimerEventDefinition_0lmfqku">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT10S</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:intermediateCatchEvent>
     <bpmn:task id="Activity_0ugaerd" name="Terminate area visit">
       <bpmn:extensionElements>
         <space:type>environmental</space:type>
         <space:action>myPlace().visitor_count --</space:action>
+        <space:timer>15</space:timer>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0bxlsng</bpmn:incoming>
       <bpmn:outgoing>Flow_0ii4cf7</bpmn:outgoing>
@@ -542,6 +528,22 @@ myPlace().visitor_count ++</bpmn:text>
     <bpmn:endEvent id="Event_19m71od" name="Visit completed">
       <bpmn:incoming>Flow_0yw96at</bpmn:incoming>
     </bpmn:endEvent>
+    <bpmn:task id="Activity_1yp2tla" name="Observe plants">
+      <bpmn:extensionElements>
+        <space:type>environmental</space:type>
+        <space:action>myPlace().visitor_count ++</space:action>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_033cwth</bpmn:incoming>
+      <bpmn:outgoing>Flow_008rqoe</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="Event_0xerffk">
+      <bpmn:incoming>Flow_008rqoe</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bxlsng</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0lmfqku">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT10S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_0bxlsng" sourceRef="Event_0xerffk" targetRef="Activity_0ugaerd" />
     <bpmn:association id="Association_0s4fmiy" associationDirection="None" sourceRef="TextAnnotation_0optu7x" targetRef="Activity_1yp2tla" />
   </bpmn:process>
   <bpmn:process id="Controller" isExecutable="true" camunda:historyTimeToLive="0">

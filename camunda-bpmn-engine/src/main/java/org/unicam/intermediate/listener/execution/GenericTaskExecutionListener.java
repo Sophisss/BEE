@@ -157,8 +157,6 @@ public class GenericTaskExecutionListener implements ExecutionListener {
             }
         }
 
-        List<String> updatedTargetPlaceIds = tourResponse != null ? tourResponse.getTargetPlaceIds() : List.of();
-
         for (DataOutputAssociation association : activity.getDataOutputAssociations()) {
             String variableName = resolveOutputVariableName(association);
             if (variableName != null && !variableName.isBlank()) {
@@ -168,6 +166,20 @@ public class GenericTaskExecutionListener implements ExecutionListener {
 
                 if (existingVariable instanceof Map<?, ?> existingMap) {
                     existingMap.forEach((k, v) -> mergedValue.put(String.valueOf(k), v));
+                }
+
+                List<String> updatedTargetPlaceIds = tourResponse != null
+                        ? tourResponse.getTargetPlaceIds()
+                        : List.of();
+                if (updatedTargetPlaceIds.isEmpty()) {
+                    Object existingTargets = mergedValue.get("targetPlaceIds");
+                    if (existingTargets instanceof List<?> targets && !targets.isEmpty()) {
+                        updatedTargetPlaceIds = targets.stream()
+                                .map(String::valueOf)
+                                .toList();
+                        log.info("[GENERIC_TASK] Tour recalculation returned no targets for '{}'; preserving remaining {} destinations",
+                                variableName, updatedTargetPlaceIds.size());
+                    }
                 }
 
                 mergedValue.put("targetPlaceIds", updatedTargetPlaceIds);
