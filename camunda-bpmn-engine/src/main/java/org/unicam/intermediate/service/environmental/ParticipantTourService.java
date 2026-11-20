@@ -288,12 +288,19 @@ public class ParticipantTourService {
                 participantAttrs,
                 "choices", "preferences", "interests", "tags", "attributes", "categories"
         );
+        List<List<String>> preferenceGroups = extractPreferenceGroups(
+                participantAttrs,
+                "choices", "preferences", "interests", "tags", "attributes", "categories"
+        );
 
         boolean needsAccessibility = isAccessibilityRequired(participantAttrs);
+        Map<String, Set<String>> preferenceDomains = buildPreferenceDomains(places);
 
         List<PhysicalPlace> targetPlaces = places.stream()
                 .filter(place -> !isInaccessible(place))
-                .filter(place -> matchesParticipantPreferences(place, participantPreferences))
+                .filter(place -> preferenceGroups.isEmpty()
+                        ? matchesParticipantPreferences(place, participantPreferences, preferenceDomains)
+                        : matchesPreferenceGroups(place, preferenceGroups))
                 .toList();
 
         List<String> targetPlaceIds = targetPlaces.stream()
@@ -335,32 +342,112 @@ public class ParticipantTourService {
         return calculateTour(participant);
     }
 
-    private boolean matchesParticipantPreferences(PhysicalPlace place, List<String> participantPreferences) {
+    private boolean matchesParticipantPreferences(PhysicalPlace place,
+                                                  List<String> participantPreferences,
+                                                  Map<String, Set<String>> preferenceDomains) {
         if (place == null || participantPreferences.isEmpty()) {
             return false;
         }
 
-        List<String> placeTags = extractStringList(place.getAttributes(), "tags", "preferences", "choices", "type", "category");
-        if (placeTags.isEmpty()) {
+        Map<String, Object> attributes = place.getAttributes();
+        if (attributes == null || attributes.isEmpty()) {
             return false;
         }
-
-        Set<String> normalizedPlaceTags = placeTags.stream()
-                .filter(tag -> tag != null && !tag.isBlank())
-                .map(String::trim)
-                .map(String::toLowerCase)
-                .collect(Collectors.toSet());
 
         Set<String> requiredPreferences = participantPreferences.stream()
                 .filter(pref -> pref != null && !pref.isBlank())
                 .map(String::trim)
                 .map(String::toLowerCase)
-                .filter(value -> !value.isBlank())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        if (requiredPreferences.isEmpty()) return false;
+        if (requiredPreferences.isEmpty()) {
+            return false;
+        }
 
-        return normalizedPlaceTags.containsAll(requiredPreferences);
+        Map<String, Set<String>> valuesByAttribute = new LinkedHashMap<>();
+        attributes.forEach((key, value) -> {
+            if (key == null || value == null) {
+                return;
+            }
+
+            Set<String> normalizedValues = toStringList(value).stream()
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .filter(item -> !item.isBlank())
+                    .collect(Collectors.toSet());
+            if (!normalizedValues.isEmpty()) {
+                valuesByAttribute.put(key, normalizedValues);
+            }
+        });
+
+        if (valuesByAttribute.isEmpty()) {
+            return false;
+        }
+
+        Set<String> preferenceAttributes = preferenceDomains.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(requiredPreferences::contains))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        // Preferences matching one attribute are OR; different attributes are AND.
+        return !preferenceAttributes.isEmpty()
+                && preferenceAttributes.stream()
+                .allMatch(attribute -> {
+                    Set<String> placeValues = valuesByAttribute.get(attribute);
+                    return placeValues != null
+                            && placeValues.stream().anyMatch(requiredPreferences::contains);
+                });
+    }
+
+    /**
+     * Matches explicit preference groups: all values inside one group are required,
+     * while any group can match. This preserves the legacy flat-list behavior.
+     */
+    private boolean matchesPreferenceGroups(PhysicalPlace place, List<List<String>> preferenceGroups) {
+        if (place == null || preferenceGroups == null || preferenceGroups.isEmpty()
+                || place.getAttributes() == null || place.getAttributes().isEmpty()) {
+            return false;
+        }
+
+        Set<String> placeValues = place.getAttributes().values().stream()
+                .filter(Objects::nonNull)
+                .flatMap(value -> toStringList(value).stream())
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.toSet());
+
+        return preferenceGroups.stream()
+                .filter(group -> group != null && !group.isEmpty())
+                .anyMatch(group -> group.stream()
+                        .filter(Objects::nonNull)
+                        .map(String::trim)
+                        .map(String::toLowerCase)
+                        .filter(value -> !value.isBlank())
+                        .allMatch(placeValues::contains));
+    }
+
+    private Map<String, Set<String>> buildPreferenceDomains(List<PhysicalPlace> places) {
+        Map<String, Set<String>> domains = new LinkedHashMap<>();
+        for (PhysicalPlace place : places) {
+            if (place == null || place.getAttributes() == null) {
+                continue;
+            }
+            place.getAttributes().forEach((key, value) -> {
+                if (key == null || value == null) {
+                    return;
+                }
+                Set<String> normalizedValues = toStringList(value).stream()
+                        .map(String::trim)
+                        .map(String::toLowerCase)
+                        .filter(item -> !item.isBlank())
+                        .collect(Collectors.toSet());
+                if (!normalizedValues.isEmpty()) {
+                    domains.computeIfAbsent(key, ignored -> new HashSet<>()).addAll(normalizedValues);
+                }
+            });
+        }
+        return domains;
     }
 
     /**
@@ -569,6 +656,36 @@ public class ParticipantTourService {
             List<String> values = toStringList(rawValue);
             if (!values.isEmpty()) {
                 return values;
+            }
+        }
+
+        return List.of();
+    }
+
+    private List<List<String>> extractPreferenceGroups(Map<String, Object> attributes, String... keys) {
+        if (attributes == null || keys == null) {
+            return List.of();
+        }
+
+        for (String key : keys) {
+            Object rawValue = attributes.get(key);
+            if (!(rawValue instanceof List<?> list)
+                    || list.stream().noneMatch(item -> item instanceof List<?>)) {
+                continue;
+            }
+
+            List<List<String>> groups = list.stream()
+                    .filter(item -> item instanceof List<?>)
+                    .map(item -> ((List<?>) item).stream()
+                            .filter(Objects::nonNull)
+                            .map(Object::toString)
+                            .map(String::trim)
+                            .filter(value -> !value.isBlank())
+                            .toList())
+                    .filter(group -> !group.isEmpty())
+                    .toList();
+            if (!groups.isEmpty()) {
+                return groups;
             }
         }
 

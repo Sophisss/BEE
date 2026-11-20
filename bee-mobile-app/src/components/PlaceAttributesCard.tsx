@@ -44,7 +44,7 @@ const isArrayLike = (val: any): boolean => {
 /**
  * Safely parses any array-like value into a native JavaScript string array.
  */
-const parseToArray = (val: any): string[] => {
+const parseToArray = (val: any): any[] => {
     if (Array.isArray(val)) return val;
     if (typeof val === 'string') {
         try {
@@ -54,6 +54,7 @@ const parseToArray = (val: any): string[] => {
             return [];
         }
     }
+
     return [];
 };
 
@@ -71,6 +72,8 @@ const AttributeInput: React.FC<{
     // 1. Array / Tags / Choices Selector (Handles both native arrays and "[]" strings)
     if (isArrayLike(value)) {
         const currentArray = parseToArray(value);
+        const groupedPreferences = Array.isArray(currentArray) &&
+            currentArray.some((item) => Array.isArray(item));
 
         const togglePreference = (prefValue: string) => {
             if (readOnly) return;
@@ -82,6 +85,17 @@ const AttributeInput: React.FC<{
             onChange(attrKey, updatedArray);
         };
 
+        const toggleGroupedPreference = (groupIndex: number, prefValue: string) => {
+            if (readOnly) return;
+            const groups = currentArray.map((group: any) => Array.isArray(group) ? [...group] : []);
+            const group = groups[groupIndex];
+            const exists = group.includes(prefValue);
+            groups[groupIndex] = exists
+                ? group.filter((item: string) => item !== prefValue)
+                : [...group, prefValue];
+            onChange(attrKey, groups);
+        };
+
         if (availablePreferences.length === 0) {
             return (
                 <Text style={styles.emptyText}>
@@ -90,32 +104,74 @@ const AttributeInput: React.FC<{
             );
         }
 
-        return (
-            <View style={styles.chipContainer}>
-                {availablePreferences.map((prefTag) => {
-                    const isSelected = currentArray.includes(prefTag);
-                    return (
-                        <TouchableOpacity
-                            key={prefTag}
-                            style={[
-                                styles.chip,
-                                isSelected && styles.chipSelected,
-                                readOnly && styles.chipDisabled,
-                            ]}
-                            onPress={() => togglePreference(prefTag)}
-                            disabled={readOnly}
-                            activeOpacity={readOnly ? 1 : 0.7}
-                        >
-                            <Text style={[
-                                styles.chipText,
-                                isSelected && styles.chipTextSelected,
-                                readOnly && styles.chipTextDisabled
-                            ]}>
-                                {isSelected ? '✓ ' : '+ '}{prefTag}
+        if (groupedPreferences) {
+            return (
+                <View>
+                    {currentArray.map((group, groupIndex) => (
+                        <View key={`group-${groupIndex}`} style={styles.preferenceGroup}>
+                            <Text style={styles.groupLabel}>
+                                {groupIndex === 0 ? 'ALL OF THIS GROUP' : `ALTERNATIVE ${groupIndex}`}
                             </Text>
+                            <View style={styles.chipContainer}>
+                                {availablePreferences.map((prefTag) => {
+                                    const isSelected = group.includes(prefTag);
+                                    return (
+                                        <TouchableOpacity
+                                            key={`${groupIndex}-${prefTag}`}
+                                            style={[styles.chip, isSelected && styles.chipSelected, readOnly && styles.chipDisabled]}
+                                            onPress={() => toggleGroupedPreference(groupIndex, prefTag)}
+                                            disabled={readOnly}
+                                            activeOpacity={readOnly ? 1 : 0.7}
+                                        >
+                                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected, readOnly && styles.chipTextDisabled]}>
+                                                {isSelected ? '✓ ' : '+ '}{prefTag}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    ))}
+                    {!readOnly && (
+                        <TouchableOpacity
+                            style={styles.addGroupButton}
+                            onPress={() => onChange(attrKey, [...currentArray, []])}
+                        >
+                            <Text style={styles.addGroupText}>+ Add alternative group</Text>
                         </TouchableOpacity>
-                    );
-                })}
+                    )}
+                </View>
+            );
+        }
+
+        return (
+            <View>
+                <View style={styles.chipContainer}>
+                    {availablePreferences.map((prefTag) => {
+                        const isSelected = currentArray.includes(prefTag);
+                        return (
+                            <TouchableOpacity
+                                key={prefTag}
+                                style={[styles.chip, isSelected && styles.chipSelected, readOnly && styles.chipDisabled]}
+                                onPress={() => togglePreference(prefTag)}
+                                disabled={readOnly}
+                                activeOpacity={readOnly ? 1 : 0.7}
+                            >
+                                <Text style={[styles.chipText, isSelected && styles.chipTextSelected, readOnly && styles.chipTextDisabled]}>
+                                    {isSelected ? '✓ ' : '+ '}{prefTag}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+                {!readOnly && currentArray.length > 1 && (
+                    <TouchableOpacity
+                        style={styles.addGroupButton}
+                        onPress={() => onChange(attrKey, [currentArray, []])}
+                    >
+                        <Text style={styles.addGroupText}>+ Create alternative group</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         );
     }
@@ -335,6 +391,28 @@ const styles = StyleSheet.create({
         color: '#64748B',
         fontSize: 12,
         fontStyle: 'italic',
+    },
+    preferenceGroup: {
+        marginBottom: 10,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#334155',
+    },
+    groupLabel: {
+        color: '#94A3B8',
+        fontSize: 10,
+        fontWeight: 'bold',
+        marginBottom: 6,
+    },
+    addGroupButton: {
+        alignSelf: 'flex-start',
+        marginTop: 4,
+        paddingVertical: 6,
+    },
+    addGroupText: {
+        color: '#38BDF8',
+        fontSize: 12,
+        fontWeight: '600',
     },
     readOnlyFooterText: {
         fontSize: 11,
