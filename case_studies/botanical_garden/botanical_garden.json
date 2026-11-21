@@ -84,7 +84,7 @@
       "attributes": {
         "tags": "Specie officinali",
         "species": "Specie officinali",
-        "soil_moisture": 10,
+        "soil_moisture": 6,
         "min_moisture": 8,
         "target_moisture": 12,
         "soil_status": "",
@@ -259,7 +259,7 @@
       "attributes": {
         "tags": "Specie officinali",
         "species": "Specie officinali",
-        "soil_moisture": 10,
+        "soil_moisture": 4,
         "min_moisture": 8,
         "target_moisture": 12,
         "soil_status": "",
@@ -2476,6 +2476,38 @@
           "attribute": "soil_status",
           "operator": "==",
           "value": "dry"
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_DryAreasEmpty",
+      "name": "Empty Dry Areas",
+      "conditions": [
+        {
+          "attribute": "soil_status",
+          "operator": "==",
+          "value": "dry"
+        },
+        {
+          "attribute": "visitor_count",
+          "operator": "==",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "LogicalPlace_DryAreasOccupied",
+      "name": "Occupied Dry Areas",
+      "conditions": [
+        {
+          "attribute": "soil_status",
+          "operator": "==",
+          "value": "dry"
+        },
+        {
+          "attribute": "visitor_count",
+          "operator": ">",
+          "value": 0
         }
       ]
     },
