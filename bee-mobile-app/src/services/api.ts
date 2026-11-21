@@ -243,6 +243,7 @@ export async function refreshPendingActionsApi(participantId: string): Promise<P
             activityId: action.activityId || '',
             message: action.message || ('Perform action: ' + (action.action || 'unknown')),
             action: action.action || '',
+            type: action.type || 'unknown'
         }));
     } catch (err) {
         console.warn('Failed to load pending actions:', err);

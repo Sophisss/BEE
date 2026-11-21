@@ -120,7 +120,7 @@ visitor.guided_visit == false</bpmn:text>
       <bpmn:text>Condition:  Breached Artworks.count &gt; 0</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:textAnnotation id="TextAnnotation_144dmu8">
-      <bpmn:text>Assignment: myPlace().alarm = "on"</bpmn:text>
+      <bpmn:text>Assignment: myPlace().alarm = "on" myPlace().is_accessible = false</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:textAnnotation id="TextAnnotation_1yoveb1">
       <bpmn:text>Assignment: myPlace().alarm = "off"</bpmn:text>
@@ -214,14 +214,11 @@ visitor.guided_visit == false</bpmn:text>
     <bpmn:association id="Association_0fa64rj" associationDirection="None" sourceRef="Activity_1p4jwz6" targetRef="TextAnnotation_1t3j9rv" />
     <bpmn:association id="Association_05i20jh" associationDirection="None" sourceRef="Gateway_00vwevu" targetRef="TextAnnotation_05s1gak" />
     <bpmn:association id="Association_11yjccg" associationDirection="None" sourceRef="Activity_198u4d1" targetRef="TextAnnotation_0wc5phk" />
-    <bpmn:textAnnotation id="TextAnnotation_1tglphe">
-      <bpmn:text>Assignment:  myPlace().is_accessible = false</bpmn:text>
-    </bpmn:textAnnotation>
-    <bpmn:association id="Association_18244bn" associationDirection="None" sourceRef="Activity_0fjdmpu" targetRef="TextAnnotation_1tglphe" />
     <bpmn:textAnnotation id="TextAnnotation_0dz8ms9">
       <bpmn:text>Assignment:  myPlace().is_accessible = false</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:association id="Association_07ru51z" associationDirection="None" sourceRef="Activity_00n6qkr" targetRef="TextAnnotation_0dz8ms9" />
+    <bpmn:association id="Association_1m1o9kr" associationDirection="None" sourceRef="Activity_10n4oo8" targetRef="TextAnnotation_144dmu8" />
   </bpmn:collaboration>
   <bpmn:process id="Proximity_Sensor" isExecutable="true" camunda:historyTimeToLive="0">
     <bpmn:extensionElements>
@@ -791,7 +788,7 @@ visitor.guided_visit == false</bpmn:text>
     </bpmn:eventBasedGateway>
     <bpmn:intermediateCatchEvent id="Event_1ch8419" name="Wait for Artwork Status">
       <bpmn:incoming>Flow_0subgwv</bpmn:incoming>
-      <bpmn:outgoing>Flow_0xdu1qd</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0sluxwk</bpmn:outgoing>
       <bpmn:conditionalEventDefinition id="ConditionalEventDefinition_1mx1fkt">
         <bpmn:condition xsi:type="bpmn:tFormalExpression">myPlace().security_status == 'breach'</bpmn:condition>
       </bpmn:conditionalEventDefinition>
@@ -824,25 +821,15 @@ visitor.guided_visit == false</bpmn:text>
       <bpmn:incoming>Flow_1hwzqfp</bpmn:incoming>
       <bpmn:outgoing>Flow_1dmghwa</bpmn:outgoing>
     </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0sluxwk" sourceRef="Event_1ch8419" targetRef="Activity_10n4oo8" />
     <bpmn:task id="Activity_10n4oo8" name="Activate alarm">
       <bpmn:extensionElements>
         <space:type>environmental</space:type>
-        <space:action>myPlace().alarm = 'on'</space:action>
+        <space:action>myPlace().alarm = 'on'; myPlace().is_accessible = false</space:action>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_14dy037</bpmn:incoming>
+      <bpmn:incoming>Flow_0sluxwk</bpmn:incoming>
       <bpmn:outgoing>Flow_0lpz4wn</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0xdu1qd" sourceRef="Event_1ch8419" targetRef="Activity_0fjdmpu" />
-    <bpmn:task id="Activity_0fjdmpu" name="Close artwork">
-      <bpmn:extensionElements>
-        <space:type>environmental</space:type>
-        <space:action>myPlace().is_accessible = false</space:action>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0xdu1qd</bpmn:incoming>
-      <bpmn:outgoing>Flow_14dy037</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_14dy037" sourceRef="Activity_0fjdmpu" targetRef="Activity_10n4oo8" />
-    <bpmn:association id="Association_1m1o9kr" associationDirection="None" sourceRef="Activity_10n4oo8" targetRef="TextAnnotation_144dmu8" />
   </bpmn:process>
   <bpmn:process id="Gallery_Surveillance" name="" isExecutable="true" camunda:historyTimeToLive="0">
     <bpmn:startEvent id="Event_1dq169a" name="Alarm detected">
@@ -932,7 +919,7 @@ visitor.guided_visit == false</bpmn:text>
       <bpmn:incoming>Flow_125n26l</bpmn:incoming>
       <bpmn:outgoing>Flow_1wfy12s</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:task id="Activity_198u4d1" name="Clean room">
+    <bpmn:task id="Activity_198u4d1" name="End cleaning">
       <bpmn:extensionElements>
         <space:type>environmental</space:type>
         <space:action>myPlace().cleaning_status = 'clean'</space:action>
@@ -964,7 +951,7 @@ visitor.guided_visit == false</bpmn:text>
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true == true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1wfy12s" sourceRef="Activity_0feh4tv" targetRef="Activity_1p4jwz6" />
-    <bpmn:task id="Activity_1p4jwz6" name="Start cleaning">
+    <bpmn:task id="Activity_1p4jwz6" name="Cleaning">
       <bpmn:extensionElements>
         <space:type>environmental</space:type>
         <space:action>myPlace().cleaning_status = 'cleaning'</space:action>
@@ -1745,17 +1732,9 @@ visitor.guided_visit == false</bpmn:text>
         <dc:Bounds x="2235" y="485" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_10n4oo8_di" bpmnElement="Activity_10n4oo8">
-        <dc:Bounds x="2070" y="400" width="100" height="80" />
+        <dc:Bounds x="1950" y="400" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0fjdmpu_di" bpmnElement="Activity_0fjdmpu">
-        <dc:Bounds x="1915" y="400" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_1m1o9kr_di" bpmnElement="Association_1m1o9kr">
-        <di:waypoint x="2170" y="415" />
-        <di:waypoint x="2195" y="403" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_16y5f0v_di" bpmnElement="Flow_16y5f0v">
         <di:waypoint x="1553" y="510" />
         <di:waypoint x="1610" y="510" />
@@ -1782,7 +1761,7 @@ visitor.guided_visit == false</bpmn:text>
         <di:waypoint x="1807" y="610" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0lpz4wn_di" bpmnElement="Flow_0lpz4wn">
-        <di:waypoint x="2170" y="440" />
+        <di:waypoint x="2050" y="440" />
         <di:waypoint x="2260" y="440" />
         <di:waypoint x="2260" y="485" />
       </bpmndi:BPMNEdge>
@@ -1795,13 +1774,9 @@ visitor.guided_visit == false</bpmn:text>
         <di:waypoint x="2260" y="610" />
         <di:waypoint x="2260" y="535" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0xdu1qd_di" bpmnElement="Flow_0xdu1qd">
+      <bpmndi:BPMNEdge id="Flow_0sluxwk_di" bpmnElement="Flow_0sluxwk">
         <di:waypoint x="1843" y="440" />
-        <di:waypoint x="1915" y="440" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_14dy037_di" bpmnElement="Flow_14dy037">
-        <di:waypoint x="2015" y="440" />
-        <di:waypoint x="2070" y="440" />
+        <di:waypoint x="1950" y="440" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_0dse67o_di" bpmnElement="Participant_0dse67o" isHorizontal="true">
         <dc:Bounds x="1455" y="80" width="972" height="220" />
@@ -2092,17 +2067,9 @@ visitor.guided_visit == false</bpmn:text>
         <di:waypoint x="630" y="860" />
         <di:waypoint x="705" y="860" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_18244bn_di" bpmnElement="Association_18244bn">
-        <di:waypoint x="1978" y="400" />
-        <di:waypoint x="1981" y="390" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_1q95a56_di" bpmnElement="Association_1q95a56">
-        <di:waypoint x="1932" y="160" />
-        <di:waypoint x="1929" y="134" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_07ru51z_di" bpmnElement="Association_07ru51z">
-        <di:waypoint x="2108" y="160" />
-        <di:waypoint x="2123" y="134" />
+      <bpmndi:BPMNEdge id="Association_1m1o9kr_di" bpmnElement="Association_1m1o9kr">
+        <di:waypoint x="2050" y="411" />
+        <di:waypoint x="2065" y="402" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0thcvv7_di" bpmnElement="TextAnnotation_0thcvv7">
         <dc:Bounds x="810" y="1890" width="180" height="41" />
@@ -2220,6 +2187,10 @@ visitor.guided_visit == false</bpmn:text>
         <dc:Bounds x="1954" y="510" width="160" height="41" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1p5h46u_di" bpmnElement="TextAnnotation_1p5h46u">
+        <dc:Bounds x="1880" y="93" width="212" height="41" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0jeaais_di" bpmnElement="TextAnnotation_0jeaais">
         <dc:Bounds x="1775" y="520" width="160" height="55" />
         <bpmndi:BPMNLabel />
@@ -2282,6 +2253,10 @@ visitor.guided_visit == false</bpmn:text>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1t3j9rv_di" bpmnElement="TextAnnotation_1t3j9rv">
         <dc:Bounds x="523" y="80" width="269.9985481997677" height="40.65040650406504" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0dz8ms9_di" bpmnElement="TextAnnotation_0dz8ms9">
+        <dc:Bounds x="2087" y="94" width="190" height="40" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="DataInputAssociation_1r28vs4_di" bpmnElement="DataInputAssociation_1r28vs4">
@@ -2443,6 +2418,10 @@ visitor.guided_visit == false</bpmn:text>
         <di:waypoint x="1984" y="570" />
         <di:waypoint x="1992" y="551" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1q95a56_di" bpmnElement="Association_1q95a56">
+        <di:waypoint x="1932" y="160" />
+        <di:waypoint x="1929" y="134" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_1xb2d0h_di" bpmnElement="Association_1xb2d0h">
         <di:waypoint x="1825" y="592" />
         <di:waypoint x="1825" y="575" />
@@ -2511,20 +2490,12 @@ visitor.guided_visit == false</bpmn:text>
         <di:waypoint x="865" y="170" />
         <di:waypoint x="870" y="134" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_07ru51z_di" bpmnElement="Association_07ru51z">
+        <di:waypoint x="2108" y="160" />
+        <di:waypoint x="2123" y="134" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_144dmu8_di" bpmnElement="TextAnnotation_144dmu8">
-        <dc:Bounds x="2190" y="373" width="211.99181848852902" height="29.995360998650472" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_1tglphe_di" bpmnElement="TextAnnotation_1tglphe">
-        <dc:Bounds x="1939" y="350" width="189.99873481781378" height="39.99030026990553" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_1p5h46u_di" bpmnElement="TextAnnotation_1p5h46u">
-        <dc:Bounds x="1880" y="93" width="212" height="41" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_0dz8ms9_di" bpmnElement="TextAnnotation_0dz8ms9">
-        <dc:Bounds x="2087" y="94" width="190" height="40" />
+        <dc:Bounds x="2065" y="367" width="212" height="41" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

@@ -22,6 +22,9 @@ public class ConditionalEventGuardEvaluator {
     private static final Pattern CONDITION_PATTERN = Pattern.compile(
             "^(.+?)\\.([A-Za-z0-9_-]+)\\s*(==|!=|>=|<=|>|<)\\s*(.+)$"
     );
+    private static final Pattern ATTRIBUTE_REFERENCE_PATTERN = Pattern.compile(
+            "^([A-Za-z_][A-Za-z0-9_ -]*)\\.([A-Za-z0-9_-]+)$"
+    );
     private static final Pattern ZONE_QUANTIFIER_PATTERN = Pattern.compile(
             "^(exist|for\\s+all)\\s+([A-Za-z0-9_]+)\\s+in\\s*\\(\\s*myPlace\\(\\)\\.zone\\s*\\)\\s+such\\s+that\\s+\\2\\.([A-Za-z0-9_-]+)\\s*(==|!=|>=|<=|>|<)\\s*(.+)$",
             Pattern.CASE_INSENSITIVE
@@ -190,7 +193,8 @@ public class ConditionalEventGuardEvaluator {
             String placeId = matcher.group(1).trim();
             String attributeKey = matcher.group(2);
             String operator = matcher.group(3);
-            String expectedText = unquote(matcher.group(4).trim());
+            String expectedOperand = matcher.group(4).trim();
+            String expectedText = unquote(expectedOperand);
 
             Optional<String> logicalPlaceId = environmentDataService.resolveLogicalPlaceId(placeId);
             if (logicalPlaceId.isPresent()
@@ -212,12 +216,16 @@ public class ConditionalEventGuardEvaluator {
             log.info("[DEBUG-CONDITIONAL] Place: '{}' | Attribute: '{}' | Actual Value: '{}' | Condition: '{}'",
                     placeId, attributeKey, actualText, resolvedExpression);
 
-            Matcher attributeReference = CONDITION_PATTERN.matcher(expectedText);
+            Matcher attributeReference = ATTRIBUTE_REFERENCE_PATTERN.matcher(expectedOperand);
             if (attributeReference.matches()) {
-                expectedText = environmentDataService
-                        .getPhysicalPlaceAttribute(attributeReference.group(1).trim(), attributeReference.group(2))
-                        .map(String::valueOf)
-                        .orElse(expectedText);
+                Optional<Object> expectedValue = environmentDataService.getPhysicalPlaceAttribute(
+                        attributeReference.group(1).trim(), attributeReference.group(2));
+                if (expectedValue.isEmpty()) {
+                    log.warn("[ConditionalEventEvaluator] Attribute reference '{}' not found for activity '{}'",
+                            expectedOperand, activityId);
+                    return false;
+                }
+                expectedText = String.valueOf(expectedValue.get()).trim();
             }
 
             return compare(actualValue, operator, expectedText);

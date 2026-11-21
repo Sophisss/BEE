@@ -218,12 +218,20 @@ public class DynamicParseListener extends AbstractBpmnParseListener {
             if (conditionElement != null) {
                 String originalExpression = conditionElement.getText();
 
-                if (originalExpression != null && !originalExpression.trim().isEmpty()
-                        && originalExpression.contains("myPlace()")) {
+                if (originalExpression != null && !originalExpression.trim().isEmpty()) {
                     try {
+                        String expressionForEvaluator = originalExpression.trim();
+                        if (expressionForEvaluator.startsWith("${")
+                                && expressionForEvaluator.endsWith("}")) {
+                            expressionForEvaluator = expressionForEvaluator.substring(
+                                    2, expressionForEvaluator.length() - 1).trim();
+                        }
+                        String escapedExpression = expressionForEvaluator
+                                .replace("\\", "\\\\")
+                                .replace("'", "\\'");
                         String wrappedExpression = String.format(
                                 "${conditionalEventGuardEvaluator.evaluate(execution, '%s')}",
-                                originalExpression.replace("'", "\\'")
+                                escapedExpression
                         );
 
                         ExpressionManager exprMgr = Context.getProcessEngineConfiguration().getExpressionManager();
